@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swodesh View - Live Controller</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #121212; color: #fff; margin: 0; padding: 15px; }
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 10px; border: 1px solid #333; }
+        h2 { margin-top: 0; color: #00ea91; border-bottom: 1px solid #333; padding-bottom: 8px; font-size: 16px; }
+        label { display: block; margin: 10px 0 5px; font-size: 12px; color: #aaa; }
+        input, select, textarea { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: #fff; box-sizing: border-box; }
+        .switch-box { display: flex; align-items: center; justify-content: space-between; background: #252525; padding: 8px; border-radius: 5px; margin-top: 10px; font-size: 14px; }
+        .btn { background: #00ea91; color: #000; border: none; padding: 12px; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px; }
+        .btn:hover { background: #00c479; }
+        .flex-group { display: flex; gap: 10px; }
+        .shootout-btn { width: 35px; height: 35px; border: 1px solid #555; background: #333; color: white; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .shootout-btn.active-v { background: #00ea91; color: black; }
+        .shootout-btn.active-x { background: #ff4d4d; color: white; }
+    </style>
+</head>
+<body>
+
+<h1 style="text-align:center; color:#00ea91; font-size:22px; margin-bottom:20px;">Live Broadcast Controller</h1>
+
+<div class="container">
+    <!-- ১. ইমেজ কন্ট্রোল -->
+    <div class="card">
+        <h2>🖼️ Image Overlays (Graphics)</h2>
+        <label>Image 1 URL:</label>
+        <input type="text" id="img1_url" placeholder="ছবির লিংক বসান...">
+        <div class="switch-box"><span>Image 1 On/Off</span><input type="checkbox" id="img1_status" style="width:auto;"></div>
+        
+        <label style="margin-top:15px;">Image 2 URL:</label>
+        <input type="text" id="img2_url" placeholder="ছবির লিংক বসান...">
+        <div class="switch-box"><span>Image 2 On/Off</span><input type="checkbox" id="img2_status" style="width:auto;"></div>
+    </div>
+
+    <!-- ২. স্কোরবোর্ড ও টাইমার -->
+    <div class="card">
+        <h2>⚽ Scoreboard & Timer</h2>
+        <div class="flex-group">
+            <div><label>Team A:</label><input type="text" id="team_a_name" value="TEAM A"></div>
+            <div><label>Score:</label><input type="number" id="team_a_score" value="0"></div>
+        </div>
+        <div class="flex-group" style="margin-top:10px;">
+            <div><label>Team B:</label><input type="text" id="team_b_name" value="TEAM B"></div>
+            <div><label>Score:</label><input type="number" id="team_b_score" value="0"></div>
+        </div>
+        
+        <label>Match Time (MM:SS):</label>
+        <input type="text" id="match_time" value="00:00">
+        <div class="switch-box"><span>Timer Run/Pause</span><input type="checkbox" id="timer_status" style="width:auto;"></div>
+
+        <label>Period:</label>
+        <select id="match_period">
+            <option value="1st Half">1st Half</option>
+            <option value="Halftime">Halftime</option>
+            <option value="2nd Half">2nd Half</option>
+            <option value="1st Extra">1st Extra</option>
+            <option value="2nd Extra">2nd Extra</option>
+            <option value="Shootout">Shootout</option>
+        </select>
+        <div class="switch-box"><span>Show Scoreboard & Period</span><input type="checkbox" id="period_status" style="width:auto;"></div>
+    </div>
+
+    <!-- ৩. টাইব্রেকার শ্যুটআউট -->
+    <div class="card">
+        <h2>🎯 Penalty Shootout Tracker</h2>
+        <label>Team A Shots:</label>
+        <div class="flex-group" id="shootout_a_btns"></div>
+        <label style="margin-top:10px;">Team B Shots:</label>
+        <div class="flex-group" id="shootout_b_btns"></div>
+        <div class="switch-box"><span>Show Shootout Panel</span><input type="checkbox" id="shootout_status" style="width:auto;"></div>
+    </div>
+
+    <!-- ৪. নিউজ টিকার এবং প্লেয়ার লিস্ট -->
+    <div class="card">
+        <h2>📰 Ticker & Lineups</h2>
+        <label>Scrolling News Text:</label>
+        <input type="text" id="ticker_text" placeholder="যা লিখবেন তা স্ক্রল হবে...">
+        <div class="switch-box"><span>Ticker On/Off</span><input type="checkbox" id="ticker_status" style="width:auto;"></div>
+
+        <label style="margin-top:15px;">Player List (Team A & B):</label>
+        <textarea id="lineup_a" rows="3" placeholder="1. Player X&#10;10. Player Y"></textarea>
+        <div class="switch-box"><span>Show Player List</span><input type="checkbox" id="lineup_status" style="width:auto;"></div>
+    </div>
+</div>
+
+<div style="max-width:400px; margin:20px auto; padding:0 15px;">
+    <button class="btn" onclick="publishUpdate()">Update Live Settings</button>
+</div>
+
+<script>
+    // এখানে আপনার তথ্যগুলো নিখুঁতভাবে বসান
+    const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA"; 
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let shootoutState = { a: ['', '', '', '', ''], b: ['', '', '', '', ''] };
+
+    function createShootoutUI() {
+        const containerA = document.getElementById('shootout_a_btns');
+        const containerB = document.getElementById('shootout_b_btns');
+        for(let i=0; i<5; i++) {
+            containerA.innerHTML += `<button class="shootout-btn" onclick="toggleShot('a', ${i}, this)">-</button>`;
+            containerB.innerHTML += `<button class="shootout-btn" onclick="toggleShot('b', ${i}, this)">-</button>`;
+        }
+    }
+    createShootoutUI();
+
+    function toggleShot(team, index, btn) {
+        if(shootoutState[team][index] === '') { shootoutState[team][index] = 'V'; btn.innerText = '✓'; btn.className='shootout-btn active-v'; }
+        else if(shootoutState[team][index] === 'V') { shootoutState[team][index] = 'X'; btn.innerText = '✕'; btn.className='shootout-btn active-x'; }
+        else { shootoutState[team][index] = ''; btn.innerText = '-'; btn.className='shootout-btn'; }
+    }
+
+    async function publishUpdate() {
+        const updateData = {
+            img1_url: document.getElementById('img1_url').value,
+            img1_status: document.getElementById('img1_status').checked ? 'show' : 'hide',
+            img2_url: document.getElementById('img2_url').value,
+            img2_status: document.getElementById('img2_status').checked ? 'show' : 'hide',
+            team_a_name: document.getElementById('team_a_name').value,
+            team_a_score: document.getElementById('team_a_score').value,
+            team_b_name: document.getElementById('team_b_name').value,
+            team_b_score: document.getElementById('team_b_score').value,
+            match_time: document.getElementById('match_time').value,
+            timer_status: document.getElementById('timer_status').checked ? 'run' : 'pause',
+            match_period: document.getElementById('match_period').value,
+            period_status: document.getElementById('period_status').checked ? 'show' : 'hide',
+            ticker_text: document.getElementById('ticker_text').value,
+            ticker_status: document.getElementById('ticker_status').checked ? 'show' : 'hide',
+            lineup_a: document.getElementById('lineup_a').value,
+            shootout_data: JSON.stringify(shootoutState),
+            shootout_status: document.getElementById('shootout_status').checked ? 'show' : 'hide',
+            lineup_status: document.getElementById('lineup_status').checked ? 'show' : 'hide'
+        };
+
+        const { error } = await supabase.from('overlays').update(updateData).eq('id', 1);
+        if(error) alert("Error: " + error.message);
+        else alert("Live Screen Updated!");
+    }
+</script>
+</body>
+</html>
