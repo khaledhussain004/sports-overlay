@@ -1,134 +1,175 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Live Overlay Output</title>
+    <title>Live Stream Overlay Pack</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; padding: 0; background: transparent; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; color: white; }
+        body { margin: 0; padding: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Arial', sans-serif; overflow: hidden; position: relative; }
         
-        /* ইমেজগুলো স্ক্রিনের যেকোনো জায়গায় মাউস দিয়ে ড্র্যাগ করার সুবিধার্থে */
-        .custom-img { position: absolute; display: none; max-width: 250px; z-index: 5; border-radius: 5px; }
-        #img1 { top: 40px; right: 40px; }
-        #img2 { top: 300px; right: 40px; }
+        /* লোগো পজিশন */
+        .logo-box { position: absolute; display: none; max-height: 90px; object-fit: contain; }
+        #logo1 { top: 30px; left: 30px; } /* লোগো ১: ওপরে বামে */
+        #logo2 { top: 30px; right: 30px; } /* লোগো ২: ওপরে ডানে */
 
-        /* প্রফেশনাল স্পোর্টস স্কোরবোর্ড */
-        .scoreboard { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); background: rgba(15, 15, 15, 0.9); display: flex; align-items: center; font-weight: bold; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,0.6); border-bottom: 4px solid #00ea91; display: none; z-index: 10; overflow: hidden; }
-        .team { padding: 12px 25px; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
-        .score { background: #00ea91; color: black; padding: 12px 22px; font-size: 26px; min-width: 35px; text-align: center; }
-        .time-period { padding: 10px 20px; background: #252525; font-size: 18px; text-align: center; min-width: 110px; border-left: 1px solid #444; border-right: 1px solid #444; }
+        /* প্রফেশনাল ফুটবল স্কোরবোর্ড */
+        .score-container { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); display: none; background: rgba(10, 15, 30, 0.85); border: 2px solid #00fff0; border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); overflow: hidden; color: white; display: flex; align-items: center; }
+        .team-name { padding: 12px 25px; font-size: 26px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; min-width: 150px; text-align: center; }
+        .team-a-box { background: linear-gradient(90deg, #900c3f, #c70039); }
+        .team-b-box { background: linear-gradient(90deg, #1f4068, #162447); }
+        .score-box { background: #111; font-size: 34px; font-weight: bold; padding: 10px 20px; min-width: 45px; text-align: center; color: #fff; border-left: 1px solid #333; border-right: 1px solid #333; }
+        .time-box { padding: 10px 20px; font-size: 26px; font-weight: bold; color: #00fff0; background: #000; text-align: center; min-width: 90px; }
+        .period-box { background: #222; font-size: 14px; padding: 5px 10px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 4px 4px 0 0; font-weight: bold; color: #aaa; text-transform: uppercase; }
 
-        /* পেনাল্টি শ্যুটআউট */
-        .shootout-panel { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); background: rgba(20,20,20,0.95); padding: 12px 25px; border-radius: 6px; display: none; gap: 25px; font-size: 16px; border: 1px solid #333; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #444; margin: 0 4px; border: 1px solid #222; }
-        .dot.V { background: #00ea91; box-shadow: 0 0 8px #00ea91; }
-        .dot.X { background: #ff4d4d; box-shadow: 0 0 8px #ff4d4d; }
+        /* টাইব্রেকার / শ্যুটআউট প্যানেল */
+        .shootout-panel { position: absolute; top: 130px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border-radius: 6px; padding: 15px; border: 1px solid #444; display: none; flex-direction: column; gap: 10px; width: 450px; color: white; }
+        .s-row { display: flex; justify-content: space-between; align-items: center; }
+        .s-team { font-size: 18px; font-weight: bold; width: 120px; overflow: hidden; text-overflow: ellipsis; }
+        .s-dots { display: flex; gap: 8px; }
+        .dot { width: 22px; height: 22px; border-radius: 50%; background: #444; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .dot.goal { background: #28a745; color: white; }
+        .dot.miss { background: #dc3545; color: white; }
 
-        /* স্ক্রলিং নিউজ টিকার */
-        .ticker-wrap { position: absolute; bottom: 0; left: 0; width: 100%; background: #ff0000; padding: 14px 0; overflow: hidden; white-space: nowrap; font-size: 24px; font-weight: bold; display: none; box-shadow: 0 -5px 15px rgba(0,0,0,0.4); z-index: 20; }
-        .ticker-text { display: inline-block; animation: marquee 25s linear infinite; padding-left: 100%; }
-        @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+        /* ব্রেকিং নিউজ নিউজ টিকার */
+        .ticker-wrap { position: absolute; bottom: 0; left: 0; width: 1920px; background: rgba(220, 20, 60, 0.95); color: white; overflow: hidden; height: 50px; display: none; align-items: center; border-top: 3px solid #ffcc00; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
+        .ticker-title { background: #ffcc00; color: #000; font-weight: bold; padding: 0 25px; height: 100%; display: flex; align-items: center; font-size: 20px; z-index: 5; position: absolute; text-transform: uppercase; }
+        .ticker-text { display: inline-block; white-space: nowrap; padding-left: 100%; font-size: 22px; font-weight: bold; animation: ticker linear infinite; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
 
-        /* স্কোয়াড / প্লেয়ার লিস্ট */
-        .lineup-box { position: absolute; top: 180px; left: 40px; background: rgba(10,10,10,0.9); padding: 22px; border-radius: 8px; width: 280px; border-left: 6px solid #00ea91; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 8; }
-        .lineup-box pre { margin: 0; font-size: 18px; font-family: inherit; line-height: 1.7; white-space: pre-line; color: #eee; }
+        /* লোয়ার থার্ড গ্রাফিক্স */
+        .l3-box { position: absolute; bottom: 80px; left: 50px; display: none; min-width: 400px; }
+        .l3-main { background: linear-gradient(90deg, #0f4c81, rgba(15,76,129,0.6)); padding: 12px 30px; font-size: 28px; font-weight: bold; color: white; border-left: 8px solid #00fff0; border-radius: 0 8px 0 0; width: fit-content; }
+        .l3-sub { background: rgba(0, 0, 0, 0.75); padding: 6px 25px; font-size: 18px; color: #ffcc00; width: fit-content; border-radius: 0 0 8px 0; }
     </style>
 </head>
 <body>
 
-<img id="img1" class="custom-img" src="" alt="">
-<img id="img2" class="custom-img" src="" alt="">
+    <img id="logo1" class="logo-box" src="" alt="Logo 1">
+    <img id="logo2" class="logo-box" src="" alt="Logo 2">
 
-<div class="scoreboard" id="board">
-    <div class="team" id="t_a">TEAM A</div>
-    <div class="score" id="s_a">0</div>
-    <div class="time-period">
-        <div id="m_time">00:00</div>
-        <div id="m_per" style="font-size:12px; color:#00ea91; margin-top:2px;">1st Half</div>
+    <div id="scoreboard" class="score-container">
+        <div class="team-name team-a-box" id="disp_team_a">TEAM A</div>
+        <div class="score-box" id="disp_score_a">0</div>
+        <div class="time-box" id="disp_time">00:00</div>
+        <div class="score-box" id="disp_score_b">0</div>
+        <div class="team-name team-b-box" id="disp_team_b">TEAM B</div>
+        <div class="period-box" id="disp_period">1st Half</div>
     </div>
-    <div class="score" id="s_b">0</div>
-    <div class="team" id="t_b">TEAM B</div>
-</div>
 
-<div class="shootout-panel" id="shootout">
-    <div style="font-weight:bold; color:#00ea91;">A: <span id="dots_a"></span></div>
-    <div style="font-size:12px; color:#888; letter-spacing:1px; font-weight:bold;">SHOOTOUT</div>
-    <div style="font-weight:bold; color:#ff4d4d;">B: <span id="dots_b"></span></div>
-</div>
+    <div id="shootout" class="shootout-panel">
+        <div class="s-row">
+            <div class="s-team" id="s_team_a">Team A</div>
+            <div class="s-dots">
+                <div class="dot" id="d_ta_s1"></div><div class="dot" id="d_ta_s2"></div><div class="dot" id="d_ta_s3"></div><div class="dot" id="d_ta_s4"></div><div class="dot" id="d_ta_s5"></div>
+            </div>
+        </div>
+        <div class="s-row">
+            <div class="s-team" id="s_team_b">Team B</div>
+            <div class="s-dots">
+                <div class="dot" id="d_tb_s1"></div><div class="dot" id="d_tb_s2"></div><div class="dot" id="d_tb_s3"></div><div class="dot" id="d_tb_s4"></div><div class="dot" id="d_tb_s5"></div>
+            </div>
+        </div>
+    </div>
 
-<div class="lineup-box" id="lineup"><pre id="list_content"></pre></div>
+    <div id="ticker" class="ticker-wrap">
+        <div class="ticker-title">সরাসরি</div>
+        <div class="ticker-text" id="disp_ticker">Loading news update...</div>
+    </div>
 
-<div class="ticker-wrap" id="ticker"><div class="ticker-text" id="tick_t"></div></div>
+    <div id="lower_third" class="l3-box">
+        <div class="l3-main" id="disp_l3_title">Khaled Hossain</div>
+        <div class="l3-sub" id="disp_l3_sub">Swodesh View</div>
+    </div>
 
-<script>
-    const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
-    const supabase = window.supabase.createClient(https://exnedokvmwxhqcjsyvcq.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA);
+    <script>
+        const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co/";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
+        const supabase = window.supabase.createClient(https://exnedokvmwxhqcjsyvcq.supabase.co/, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA);
 
-    let timerInterval = null;
-    let currentSeconds = 0;
+        let currentSec = 0;
+        let isTimerRunning = false;
+        let timerInterval = null;
 
-    function parseTimeToSeconds(timeStr) {
-        const parts = timeStr.split(':');
-        return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
-    }
+        function parseTimeToSec(timeStr) {
+            let parts = timeStr.split(':');
+            return (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
+        }
 
-    function formatSecondsToTime(seconds) {
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        return `${mins}:${secs}`;
-    }
+        function formatSecToTime(seconds) {
+            let mins = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
 
-    function startTimer() {
-        if (timerInterval) return;
-        timerInterval = setInterval(() => {
-            currentSeconds++;
-            document.getElementById('m_time').innerText = formatSecondsToTime(currentSeconds);
-        }, 1000);
-    }
+        function renderShotDot(id, state) {
+            const el = document.getElementById('d_' + id);
+            el.className = 'dot'; el.innerText = '';
+            if (state === 'goal') { el.classList.add('goal'); el.innerText = '✓'; }
+            else if (state === 'miss') { el.classList.add('miss'); el.innerText = '✕'; }
+        }
 
-    function pauseTimer() {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-
-    function renderOverlay(data) {
-        if(data.img1_status === 'show' && data.img1_url) { document.getElementById('img1').src = data.img1_url; document.getElementById('img1').style.display = 'block'; } else { document.getElementById('img1').style.display = 'none'; }
-        if(data.img2_status === 'show' && data.img2_url) { document.getElementById('img2').src = data.img2_url; document.getElementById('img2').style.display = 'block'; } else { document.getElementById('img2').style.display = 'none'; }
-
-        if(data.period_status === 'show') {
-            document.getElementById('board').style.display = 'flex';
-            document.getElementById('t_a').innerText = data.team_a_name;
-            document.getElementById('s_a').innerText = data.team_a_score;
-            document.getElementById('t_b').innerText = data.team_b_name;
-            document.getElementById('s_b').innerText = data.team_b_score;
-            document.getElementById('m_per').innerText = data.match_period;
+        function renderOverlay(data) {
+            // ডাবল লোগো হ্যান্ডেল
+            if(data.logo1_on && data.logo1_url) { document.getElementById('logo1').src = data.logo1_url; document.getElementById('logo1').style.display = 'block'; }
+            else { document.getElementById('logo1').style.display = 'none'; }
             
-            currentSeconds = parseTimeToSeconds(data.match_time);
-            document.getElementById('m_time').innerText = data.match_time;
-            if(data.timer_status === 'run') { startTimer(); } else { pauseTimer(); }
-        } else { document.getElementById('board').style.display = 'none'; pauseTimer(); }
+            if(data.logo2_on && data.logo2_url) { document.getElementById('logo2').src = data.logo2_url; document.getElementById('logo2').style.display = 'block'; }
+            else { document.getElementById('logo2').style.display = 'none'; }
 
-        if(data.shootout_status === 'show' && data.shootout_data) {
-            document.getElementById('shootout').style.display = 'flex';
-            const shData = JSON.parse(data.shootout_data);
-            document.getElementById('dots_a').innerHTML = shData.a.map(s => `<span class="dot ${s}"></span>`).join('');
-            document.getElementById('dots_b').innerHTML = shData.b.map(s => `<span class="dot ${s}"></span>`).join('');
-        } else { document.getElementById('shootout').style.display = 'none'; }
+            // স্কোরবোর্ড
+            document.getElementById('scoreboard').style.display = data.show_scoreboard ? 'flex' : 'none';
+            document.getElementById('disp_team_a').innerText = data.team_a;
+            document.getElementById('disp_score_a').innerText = data.score_a;
+            document.getElementById('disp_team_b').innerText = data.team_b;
+            document.getElementById('disp_score_b').innerText = data.score_b;
+            document.getElementById('disp_period').innerText = data.period;
 
-        if(data.ticker_status === 'show') { document.getElementById('ticker').style.display = 'block'; document.getElementById('tick_t').innerText = data.ticker_text; } else { document.getElementById('ticker').style.display = 'none'; }
-        if(data.lineup_status === 'show') { document.getElementById('lineup').style.display = 'block'; document.getElementById('list_content').innerText = data.lineup_a; } else { document.getElementById('lineup').style.display = 'none'; }
-    }
+            // টাইব্রেকার শ্যুটআউট গ্রাফিক্স
+            document.getElementById('shootout').style.display = data.shootout_on ? 'flex' : 'none';
+            document.getElementById('s_team_a').innerText = data.team_a;
+            document.getElementById('s_team_b').innerText = data.team_b;
+            const shots = ['ta_s1','ta_s2','ta_s3','ta_s4','ta_s5','tb_s1','tb_s2','tb_s3','tb_s4','tb_s5'];
+            shots.forEach(s => renderShotDot(s, data[s]));
 
-    async function init() {
-        const { data } = await supabase.from('overlays').select('*').eq('id', 1).single();
-        if(data) renderOverlay(data);
-    }
-    init();
+            // নিউজ টিকার
+            document.getElementById('ticker').style.display = data.ticker_on ? 'flex' : 'none';
+            document.getElementById('disp_ticker').innerText = data.ticker_text;
+            document.getElementById('disp_ticker').style.animationDuration = (data.ticker_speed || 10) + 's';
 
-    supabase.channel('sports-stream').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'overlays' }, payload => {
-        renderOverlay(payload.new);
-    }).subscribe();
-</script>
+            // লোয়ার থার্ড
+            document.getElementById('lower_third').style.display = data.lower_third_on ? 'block' : 'none';
+            document.getElementById('disp_l3_title').innerText = data.lower_third_title;
+            document.getElementById('disp_l3_sub').innerText = data.lower_third_sub;
+
+            // টাইমার সেটআপ
+            currentSec = parseTimeToSec(data.match_time);
+            document.getElementById('disp_time').innerText = data.match_time;
+            
+            isTimerRunning = data.timer_run;
+            if (isTimerRunning) {
+                if (!timerInterval) {
+                    timerInterval = setInterval(() => {
+                        currentSec++;
+                        document.getElementById('disp_time').innerText = formatSecToTime(currentSec);
+                    }, 1000);
+                }
+            } else {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        async function init() {
+            const { data } = await supabase.from('overlays').select('*').eq('id', 1).single();
+            if (data) renderOverlay(data);
+
+            supabase.channel('custom-all-channel')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'overlays' }, payload => {
+                renderOverlay(payload.new);
+            }).subscribe();
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
