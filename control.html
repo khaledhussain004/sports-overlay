@@ -7,14 +7,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-color: #1a1a2e; --panel-bg: #162447; --accent: #0f4c81; --text: #e4e6eb; --success: #28a745; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text); margin: 0; padding: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text); margin: 0; padding: 10px; padding-bottom: 80px; }
         h2 { text-align: center; color: #00fff0; margin-bottom: 15px; text-transform: uppercase; font-size: 20px; }
         
         /* ট্যাব স্টাইল */
         .tabs { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
         .tab-btn { background: #1f4068; color: var(--text); border: none; padding: 10px 15px; border-radius: 5px 5px 0 0; cursor: pointer; font-weight: bold; white-space: nowrap; font-size: 13px; }
         .tab-btn.active { background: var(--accent); color: #fff; border-bottom: 3px solid #00fff0; }
-        .tab-content { display: none; background: var(--panel-bg); padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 70px; }
+        .tab-content { display: none; background: var(--panel-bg); padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
         .tab-content.active { display: block; }
 
         /* ফর্ম উপাদান */
@@ -24,7 +24,7 @@
         .flex-group { display: flex; gap: 10px; }
         .flex-group > div { flex: 1; }
         
-        /* অন/অফ সুইচ এবং শ্যুটআউট গ্রিড */
+        /* সুইচার ও শ্যুটআউট */
         .switch-group { display: flex; align-items: center; justify-content: space-between; background: #1f4068; padding: 10px; border-radius: 5px; margin-top: 5px; }
         .switch-group input[type="checkbox"] { width: 20px; height: 20px; }
         
@@ -34,14 +34,14 @@
         .shot-btn.success { background: var(--success); }
         .shot-btn.miss { background: #dc3545; }
 
-        /* ফিক্সড আপডেট বাটন */
-        .update-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-color); padding: 10px; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); text-align: center; }
+        /* ফিক্সড বাটন বার */
+        .update-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-color); padding: 10px; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); text-align: center; z-index: 1000; }
         .btn-update { background: var(--success); color: white; border: none; width: 95%; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-    <h2>Broadcast Suite Controller</h2>
+    <h2>Advanced Broadcast Controller</h2>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab(event, 'tab-score')">Score & Timer</button>
@@ -53,33 +53,33 @@
     <div id="tab-score" class="tab-content active">
         <div class="switch-group">
             <label for="show_scoreboard" style="color:#fff; font-weight:bold;">Show Scoreboard Overlay</label>
-            <input type="checkbox" id="show_scoreboard">
+            <input type="checkbox" id="show_scoreboard" checked>
         </div>
         <br>
         <div class="flex-group">
             <div class="form-group">
                 <label>Team A Name</label>
-                <input type="text" id="team_a">
+                <input type="text" id="team_a" value="TEAM A">
             </div>
             <div class="form-group" style="max-width: 80px;">
                 <label>Score A</label>
-                <input type="number" id="score_a">
+                <input type="number" id="score_a" value="0">
             </div>
         </div>
         <div class="flex-group">
             <div class="form-group">
                 <label>Team B Name</label>
-                <input type="text" id="team_b">
+                <input type="text" id="team_b" value="TEAM B">
             </div>
             <div class="form-group" style="max-width: 80px;">
                 <label>Score B</label>
-                <input type="number" id="score_b">
+                <input type="number" id="score_b" value="0">
             </div>
         </div>
         <div class="flex-group">
             <div class="form-group">
                 <label>Match Time (MM:SS)</label>
-                <input type="text" id="match_time" placeholder="00:00">
+                <input type="text" id="match_time" value="00:00" placeholder="00:00">
             </div>
             <div class="form-group">
                 <label>Period / Half</label>
@@ -121,12 +121,10 @@
             <label for="shootout_on" style="color:#fff; font-weight:bold;">Show Shootout Panel</label>
             <input type="checkbox" id="shootout_on">
         </div>
-
-        <p style="font-size:12px; color:#aaa; margin-top:-5px;">বাটনে ক্লিক করে পরিবর্তন করুন: ধূসর (বাকি), সবুজ (গোল ✓), লাল (মিস ✕)</p>
-
+        <p style="font-size:12px; color:#aaa; margin-top:-5px;">ক্লিক করুন: ধূসর (-), সবুজ (গোল ✓), লাল (মিস ✕)</p>
         <div class="shootout-row">
             <span id="label_team_a" style="font-weight:bold;">Team A</span>
-            <div class="shots" data-team="ta">
+            <div class="shots">
                 <div class="shot-btn" id="ta_s1" onclick="toggleShot('ta_s1')">-</div>
                 <div class="shot-btn" id="ta_s2" onclick="toggleShot('ta_s2')">-</div>
                 <div class="shot-btn" id="ta_s3" onclick="toggleShot('ta_s3')">-</div>
@@ -134,10 +132,9 @@
                 <div class="shot-btn" id="ta_s5" onclick="toggleShot('ta_s5')">-</div>
             </div>
         </div>
-
         <div class="shootout-row">
             <span id="label_team_b" style="font-weight:bold;">Team B</span>
-            <div class="shots" data-team="tb">
+            <div class="shots">
                 <div class="shot-btn" id="tb_s1" onclick="toggleShot('tb_s1')">-</div>
                 <div class="shot-btn" id="tb_s2" onclick="toggleShot('tb_s2')">-</div>
                 <div class="shot-btn" id="tb_s3" onclick="toggleShot('tb_s3')">-</div>
@@ -153,7 +150,7 @@
             <input type="text" id="ticker_text" placeholder="ব্রেকিং নিউজ এখানে লিখুন...">
         </div>
         <div class="form-group">
-            <label>Ticker Speed (কম সংখ্যা = আস্তে চলবে)</label>
+            <label>Ticker Speed (কম সংখ্যা = স্পিড বেশি)</label>
             <input type="number" id="ticker_speed" value="10">
         </div>
         <div class="switch-group">
@@ -163,11 +160,11 @@
         <hr style="border-color: #3282b8; margin: 20px 0;">
         <div class="form-group">
             <label>Lower Third Title</label>
-            <input type="text" id="lower_third_title" placeholder="যেমন: খালেদ হোসাইন">
+            <input type="text" id="lower_third_title" placeholder="যেমন: নাম">
         </div>
         <div class="form-group">
             <label>Lower Third Subtitle</label>
-            <input type="text" id="lower_third_sub" placeholder="যেমন: প্রতিনিধি, কুলাউড়া">
+            <input type="text" id="lower_third_sub" placeholder="যেমন: পদবি">
         </div>
         <div class="switch-group">
             <label for="lower_third_on">Lower Third On/Off</label>
@@ -180,12 +177,11 @@
     </div>
 
     <script>
-        // আপনার ক্রেডেনশিয়াল বসান
         const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
-        const supabase = window.supabase.createClient(https://exnedokvmwxhqcjsyvcq.supabase.co/, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA);
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ট্যাব সুইচ করার ফাংশন
         function openTab(evt, tabId) {
             let i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tab-content");
@@ -195,14 +191,12 @@
             document.getElementById(tabId).classList.add("active");
             evt.currentTarget.classList.add("active");
             
-            // শ্যুটআউট ট্যাবে নামের লেবেল আপডেট
             if(tabId === 'tab-shootout'){
                 document.getElementById('label_team_a').innerText = document.getElementById('team_a').value || "Team A";
                 document.getElementById('label_team_b').innerText = document.getElementById('team_b').value || "Team B";
             }
         }
 
-        // শ্যুটআউট বাটনের ৩টি স্টেট (none -> success -> miss -> none)
         function toggleShot(id) {
             const btn = document.getElementById(id);
             if (btn.classList.contains('success')) {
@@ -229,36 +223,34 @@
             else { btn.innerText = '-'; }
         }
 
-        // ডাটাবেস থেকে ডাটা লোড করা
         async function loadData() {
             const { data, error } = await supabase.from('overlays').select('*').eq('id', 1).single();
             if (data) {
-                document.getElementById('logo1_url').value = data.logo1_url;
-                document.getElementById('logo1_on').checked = data.logo1_on;
-                document.getElementById('logo2_url').value = data.logo2_url;
-                document.getElementById('logo2_on').checked = data.logo2_on;
-                document.getElementById('team_a').value = data.team_a;
-                document.getElementById('score_a').value = data.score_a;
-                document.getElementById('team_b').value = data.team_b;
-                document.getElementById('score_b').value = data.score_b;
-                document.getElementById('match_time').value = data.match_time;
-                document.getElementById('period').value = data.period;
-                document.getElementById('timer_run').checked = data.timer_run;
-                document.getElementById('show_scoreboard').checked = data.show_scoreboard;
-                document.getElementById('ticker_text').value = data.ticker_text;
-                document.getElementById('ticker_on').checked = data.ticker_on;
-                document.getElementById('ticker_speed').value = data.ticker_speed;
-                document.getElementById('lower_third_title').value = data.lower_third_title;
-                document.getElementById('lower_third_sub').value = data.lower_third_sub;
-                document.getElementById('lower_third_on').checked = data.lower_third_on;
-                document.getElementById('shootout_on').checked = data.shootout_on;
+                document.getElementById('logo1_url').value = data.logo1_url || '';
+                document.getElementById('logo1_on').checked = data.logo1_on || false;
+                document.getElementById('logo2_url').value = data.logo2_url || '';
+                document.getElementById('logo2_on').checked = data.logo2_on || false;
+                document.getElementById('team_a').value = data.team_a || 'TEAM A';
+                document.getElementById('score_a').value = data.score_a || 0;
+                document.getElementById('team_b').value = data.team_b || 'TEAM B';
+                document.getElementById('score_b').value = data.score_b || 0;
+                document.getElementById('match_time').value = data.match_time || '00:00';
+                document.getElementById('period').value = data.period || '1st Half';
+                document.getElementById('timer_run').checked = data.timer_run || false;
+                document.getElementById('show_scoreboard').checked = data.show_scoreboard !== false;
+                document.getElementById('ticker_text').value = data.ticker_text || '';
+                document.getElementById('ticker_on').checked = data.ticker_on || false;
+                document.getElementById('ticker_speed').value = data.ticker_speed || 10;
+                document.getElementById('lower_third_title').value = data.lower_third_title || '';
+                document.getElementById('lower_third_sub').value = data.lower_third_sub || '';
+                document.getElementById('lower_third_on').checked = data.lower_third_on || false;
+                document.getElementById('shootout_on').checked = data.shootout_on || false;
                 
                 const shots = ['ta_s1','ta_s2','ta_s3','ta_s4','ta_s5','tb_s1','tb_s2','tb_s3','tb_s4','tb_s5'];
                 shots.forEach(s => setShotState(s, data[s]));
             }
         }
 
-        // ডাটাবেসে ডাটা পাঠানো
         async function updateDatabase() {
             const updateData = {
                 logo1_url: document.getElementById('logo1_url').value,

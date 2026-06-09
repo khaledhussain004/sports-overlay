@@ -1,172 +1,225 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>Live Stream Overlay Pack</title>
+    <title>Live Stream Overlay</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; padding: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Arial', sans-serif; overflow: hidden; position: relative; }
+        body { margin: 0; padding: 0; background: transparent; overflow: hidden; font-family: 'Arial', sans-serif; color: white; }
         
-        /* লোগো পজিশন */
-        .logo-box { position: absolute; display: none; max-height: 90px; object-fit: contain; }
-        #logo1 { top: 30px; left: 30px; } /* লোগো ১: ওপরে বামে */
-        #logo2 { top: 30px; right: 30px; } /* লোগো ২: ওপরে ডানে */
+        /* স্কোরবোর্ড কন্টেইনার */
+        .scoreboard-container { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; visibility: hidden; z-index: 10; }
+        .logo-box { width: 50px; height: 50px; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border-radius: 5px; margin-right: 10px; overflow: hidden; }
+        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        
+        .main-bar { background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); overflow: hidden; height: 45px; border: 1px solid #333; }
+        .team-name { padding: 0 15px; font-weight: bold; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; min-width: 100px; text-align: center; }
+        .team-a { border-left: 4px solid #ff4b5c; }
+        .team-b { border-right: 4px solid #00fff0; }
+        .score { background: #111; font-size: 22px; font-weight: 900; padding: 0 15px; height: 100%; display: flex; align-items: center; justify-content: center; min-width: 40px; color: #fff; }
+        .score-a { color: #ff4b5c; background: #222; }
+        .score-b { color: #00fff0; background: #222; }
+        
+        .time-box { background: #0f4c81; height: 100%; padding: 0 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 80px; }
+        .time-display { font-size: 18px; font-weight: bold; color: #fff; font-family: monospace; }
+        .period-display { font-size: 10px; text-transform: uppercase; color: #00fff0; font-weight: bold; margin-top: -2px; }
 
-        /* প্রফেশনাল ফুটবল স্কোরবোর্ড */
-        .score-container { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); display: none; background: rgba(10, 15, 30, 0.85); border: 2px solid #00fff0; border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); overflow: hidden; color: white; display: flex; align-items: center; }
-        .team-name { padding: 12px 25px; font-size: 26px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; min-width: 150px; text-align: center; }
-        .team-a-box { background: linear-gradient(90deg, #900c3f, #c70039); }
-        .team-b-box { background: linear-gradient(90deg, #1f4068, #162447); }
-        .score-box { background: #111; font-size: 34px; font-weight: bold; padding: 10px 20px; min-width: 45px; text-align: center; color: #fff; border-left: 1px solid #333; border-right: 1px solid #333; }
-        .time-box { padding: 10px 20px; font-size: 26px; font-weight: bold; color: #00fff0; background: #000; text-align: center; min-width: 90px; }
-        .period-box { background: #222; font-size: 14px; padding: 5px 10px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 4px 4px 0 0; font-weight: bold; color: #aaa; text-transform: uppercase; }
+        /* টিকার স্টাইল */
+        .ticker-wrap { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.9); border-top: 3px solid #ff4b5c; height: 35px; display: flex; align-items: center; visibility: hidden; z-index: 5; }
+        .ticker-title { background: #ff4b5c; color: white; padding: 0 15px; height: 100%; display: flex; align-items: center; font-weight: bold; font-size: 14px; z-index: 6; white-space: nowrap; box-shadow: 5px 0 10px rgba(0,0,0,0.3); }
+        .ticker-nav { flex: 1; overflow: hidden; display: flex; align-items: center; }
+        .ticker-text { display: inline-block; white-space: nowrap; padding-left: 100%; font-size: 15px; font-weight: bold; color: #fff; animation: marquee linear infinite; }
+        @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
 
-        /* টাইব্রেকার / শ্যুটআউট প্যানেল */
-        .shootout-panel { position: absolute; top: 130px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border-radius: 6px; padding: 15px; border: 1px solid #444; display: none; flex-direction: column; gap: 10px; width: 450px; color: white; }
-        .s-row { display: flex; justify-content: space-between; align-items: center; }
-        .s-team { font-size: 18px; font-weight: bold; width: 120px; overflow: hidden; text-overflow: ellipsis; }
-        .s-dots { display: flex; gap: 8px; }
-        .dot { width: 22px; height: 22px; border-radius: 50%; background: #444; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-        .dot.goal { background: #28a745; color: white; }
-        .dot.miss { background: #dc3545; color: white; }
+        /* লোয়ার থার্ড */
+        .l3-container { position: absolute; bottom: 50px; left: 40px; visibility: hidden; z-index: 8; }
+        .l3-main { background: linear-gradient(90deg, rgba(15,76,129,0.95) 0%, rgba(0,0,0,0.6) 100%); padding: 10px 25px; border-left: 6px solid #00fff0; border-radius: 0 8px 8px 0; }
+        .l3-title { font-size: 20px; font-weight: bold; color: #fff; margin: 0; }
+        .l3-sub { font-size: 13px; color: #00fff0; margin: 2px 0 0 0; font-weight: 500; }
 
-        /* ব্রেকিং নিউজ নিউজ টিকার */
-        .ticker-wrap { position: absolute; bottom: 0; left: 0; width: 1920px; background: rgba(220, 20, 60, 0.95); color: white; overflow: hidden; height: 50px; display: none; align-items: center; border-top: 3px solid #ffcc00; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
-        .ticker-title { background: #ffcc00; color: #000; font-weight: bold; padding: 0 25px; height: 100%; display: flex; align-items: center; font-size: 20px; z-index: 5; position: absolute; text-transform: uppercase; }
-        .ticker-text { display: inline-block; white-space: nowrap; padding-left: 100%; font-size: 22px; font-weight: bold; animation: ticker linear infinite; }
-        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
-
-        /* লোয়ার থার্ড গ্রাফিক্স */
-        .l3-box { position: absolute; bottom: 80px; left: 50px; display: none; min-width: 400px; }
-        .l3-main { background: linear-gradient(90deg, #0f4c81, rgba(15,76,129,0.6)); padding: 12px 30px; font-size: 28px; font-weight: bold; color: white; border-left: 8px solid #00fff0; border-radius: 0 8px 0 0; width: fit-content; }
-        .l3-sub { background: rgba(0, 0, 0, 0.75); padding: 6px 25px; font-size: 18px; color: #ffcc00; width: fit-content; border-radius: 0 0 8px 0; }
+        /* শ্যুটআউট প্যানেল */
+        .shootout-panel { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border-radius: 6px; padding: 10px 15px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #444; visibility: hidden; z-index: 9; }
+        .so-row { display: flex; align-items: center; justify-content: space-between; min-width: 280px; }
+        .so-name { font-size: 14px; font-weight: bold; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .so-dots { display: flex; gap: 4px; }
+        .so-dot { width: 18px; height: 18px; border-radius: 4px; background: #444; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
+        .so-dot.goal { background: #28a745; color: white; }
+        .so-dot.miss { background: #dc3545; color: white; }
     </style>
 </head>
 <body>
 
-    <img id="logo1" class="logo-box" src="" alt="Logo 1">
-    <img id="logo2" class="logo-box" src="" alt="Logo 2">
-
-    <div id="scoreboard" class="score-container">
-        <div class="team-name team-a-box" id="disp_team_a">TEAM A</div>
-        <div class="score-box" id="disp_score_a">0</div>
-        <div class="time-box" id="disp_time">00:00</div>
-        <div class="score-box" id="disp_score_b">0</div>
-        <div class="team-name team-b-box" id="disp_team_b">TEAM B</div>
-        <div class="period-box" id="disp_period">1st Half</div>
-    </div>
-
-    <div id="shootout" class="shootout-panel">
-        <div class="s-row">
-            <div class="s-team" id="s_team_a">Team A</div>
-            <div class="s-dots">
-                <div class="dot" id="d_ta_s1"></div><div class="dot" id="d_ta_s2"></div><div class="dot" id="d_ta_s3"></div><div class="dot" id="d_ta_s4"></div><div class="dot" id="d_ta_s5"></div>
+    <div class="scoreboard-container" id="scoreboard">
+        <div class="logo-box" id="logo1_box"><img id="logo1_img" src=""></div>
+        <div class="logo-box" id="logo2_box"><img id="logo2_img" src=""></div>
+        <div class="main-bar">
+            <div class="team-name team-a" id="view_team_a">TEAM A</div>
+            <div class="score score-a" id="view_score_a">0</div>
+            <div class="time-box">
+                <div class="time-display" id="view_time">00:00</div>
+                <div class="period-display" id="view_period">1st Half</div>
             </div>
-        </div>
-        <div class="s-row">
-            <div class="s-team" id="s_team_b">Team B</div>
-            <div class="s-dots">
-                <div class="dot" id="d_tb_s1"></div><div class="dot" id="d_tb_s2"></div><div class="dot" id="d_tb_s3"></div><div class="dot" id="d_tb_s4"></div><div class="dot" id="d_tb_s5"></div>
-            </div>
+            <div class="score score-b" id="view_score_b">0</div>
+            <div class="team-name team-b" id="view_team_b">TEAM B</div>
         </div>
     </div>
 
-    <div id="ticker" class="ticker-wrap">
-        <div class="ticker-title">সরাসরি</div>
-        <div class="ticker-text" id="disp_ticker">Loading news update...</div>
+    <div class="shootout-panel" id="shootout">
+        <div class="so-row">
+            <span class="so-name" id="so_name_a">Team A</span>
+            <div class="so-dots">
+                <div class="so-dot" id="v_ta_s1">-</div>
+                <div class="so-dot" id="v_ta_s2">-</div>
+                <div class="so-dot" id="v_ta_s3">-</div>
+                <div class="so-dot" id="v_ta_s4">-</div>
+                <div class="so-dot" id="v_ta_s5">-</div>
+            </div>
+        </div>
+        <div class="so-row">
+            <span class="so-name" id="so_name_b">Team B</span>
+            <div class="so-dots">
+                <div class="so-dot" id="v_tb_s1">-</div>
+                <div class="so-dot" id="v_tb_s2">-</div>
+                <div class="so-dot" id="v_tb_s3">-</div>
+                <div class="so-dot" id="v_tb_s4">-</div>
+                <div class="so-dot" id="v_tb_s5">-</div>
+            </div>
+        </div>
     </div>
 
-    <div id="lower_third" class="l3-box">
-        <div class="l3-main" id="disp_l3_title">Khaled Hossain</div>
-        <div class="l3-sub" id="disp_l3_sub">Swodesh View</div>
+    <div class="l3-container" id="lower_third">
+        <div class="l3-main">
+            <div class="l3-title" id="view_l3_title">Khaled Hossain</div>
+            <div class="l3-sub" id="view_l3_sub">Commentator</div>
+        </div>
+    </div>
+
+    <div class="ticker-wrap" id="ticker">
+        <div class="ticker-title">সর্বশেষ খবর</div>
+        <div class="ticker-nav">
+            <div class="ticker-text" id="view_ticker_text">Live Broadcast Powered by Swodesh View...</div>
+        </div>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co/";
+        const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
-        const supabase = window.supabase.createClient(https://exnedokvmwxhqcjsyvcq.supabase.co/, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA);
-
-        let currentSec = 0;
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let localTimeSec = 0;
         let isTimerRunning = false;
         let timerInterval = null;
 
-        function parseTimeToSec(timeStr) {
-            let parts = timeStr.split(':');
-            return (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
-        }
-
-        function formatSecToTime(seconds) {
-            let mins = Math.floor(seconds / 60);
-            let secs = seconds % 60;
-            return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-        }
-
-        function renderShotDot(id, state) {
-            const el = document.getElementById('d_' + id);
-            el.className = 'dot'; el.innerText = '';
-            if (state === 'goal') { el.classList.add('goal'); el.innerText = '✓'; }
-            else if (state === 'miss') { el.classList.add('miss'); el.innerText = '✕'; }
-        }
-
-        function renderOverlay(data) {
-            // ডাবল লোগো হ্যান্ডেল
-            if(data.logo1_on && data.logo1_url) { document.getElementById('logo1').src = data.logo1_url; document.getElementById('logo1').style.display = 'block'; }
-            else { document.getElementById('logo1').style.display = 'none'; }
-            
-            if(data.logo2_on && data.logo2_url) { document.getElementById('logo2').src = data.logo2_url; document.getElementById('logo2').style.display = 'block'; }
-            else { document.getElementById('logo2').style.display = 'none'; }
-
-            // স্কোরবোর্ড
-            document.getElementById('scoreboard').style.display = data.show_scoreboard ? 'flex' : 'none';
-            document.getElementById('disp_team_a').innerText = data.team_a;
-            document.getElementById('disp_score_a').innerText = data.score_a;
-            document.getElementById('disp_team_b').innerText = data.team_b;
-            document.getElementById('disp_score_b').innerText = data.score_b;
-            document.getElementById('disp_period').innerText = data.period;
-
-            // টাইব্রেকার শ্যুটআউট গ্রাফিক্স
-            document.getElementById('shootout').style.display = data.shootout_on ? 'flex' : 'none';
-            document.getElementById('s_team_a').innerText = data.team_a;
-            document.getElementById('s_team_b').innerText = data.team_b;
-            const shots = ['ta_s1','ta_s2','ta_s3','ta_s4','ta_s5','tb_s1','tb_s2','tb_s3','tb_s4','tb_s5'];
-            shots.forEach(s => renderShotDot(s, data[s]));
-
-            // নিউজ টিকার
-            document.getElementById('ticker').style.display = data.ticker_on ? 'flex' : 'none';
-            document.getElementById('disp_ticker').innerText = data.ticker_text;
-            document.getElementById('disp_ticker').style.animationDuration = (data.ticker_speed || 10) + 's';
-
-            // লোয়ার থার্ড
-            document.getElementById('lower_third').style.display = data.lower_third_on ? 'block' : 'none';
-            document.getElementById('disp_l3_title').innerText = data.lower_third_title;
-            document.getElementById('disp_l3_sub').innerText = data.lower_third_sub;
-
-            // টাইমার সেটআপ
-            currentSec = parseTimeToSec(data.match_time);
-            document.getElementById('disp_time').innerText = data.match_time;
-            
-            isTimerRunning = data.timer_run;
-            if (isTimerRunning) {
-                if (!timerInterval) {
-                    timerInterval = setInterval(() => {
-                        currentSec++;
-                        document.getElementById('disp_time').innerText = formatSecToTime(currentSec);
-                    }, 1000);
-                }
-            } else {
-                clearInterval(timerInterval);
-                timerInterval = null;
+        function timeToSeconds(timeStr) {
+            const parts = timeStr.split(':');
+            if(parts.length === 2) {
+                return (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
             }
+            return 0;
+        }
+
+        function secondsToTime(secs) {
+            const m = Math.floor(secs / 60).toString().padStart(2, '0');
+            const s = (secs % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startLocalTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(async () => {
+                if (isTimerRunning) {
+                    localTimeSec++;
+                    const newTimeStr = secondsToTime(localTimeSec);
+                    document.getElementById('view_time').innerText = newTimeStr;
+                    
+                    // প্রতি ৫ সেকেন্ড পর পর ডাটাবেসে টাইম সিঙ্ক করবে
+                    if (localTimeSec % 5 === 0) {
+                        await supabase.from('overlays').update({ match_time: newTimeStr }).eq('id', 1);
+                    }
+                }
+            }, 1000);
+        }
+
+        function renderShot(id, state) {
+            const el = document.getElementById('v_' + id);
+            el.classList.remove('goal', 'miss');
+            if(state === 'goal') { el.classList.add('goal'); el.innerText = '✓'; }
+            else if(state === 'miss') { el.classList.add('miss'); el.innerText = '✕'; }
+            else { el.innerText = '-'; }
+        }
+
+        function updateOverlay(data) {
+            if(!data) return;
+
+            // ১. স্কোর দৃশ্যমানতা
+            document.getElementById('scoreboard').style.visibility = data.show_scoreboard ? 'visible' : 'hidden';
+            document.getElementById('view_team_a').innerText = data.team_a;
+            document.getElementById('view_score_a').innerText = data.score_a;
+            document.getElementById('view_team_b').innerText = data.team_b;
+            document.getElementById('view_score_b').innerText = data.score_b;
+            document.getElementById('view_period').innerText = data.period;
+
+            // ২. লোগো হ্যান্ডেলিং
+            const l1Box = document.getElementById('logo1_box');
+            if(data.logo1_on && data.logo1_url) {
+                document.getElementById('logo1_img').src = data.logo1_url;
+                l1Box.style.display = 'flex';
+            } else { l1Box.style.display = 'none'; }
+
+            const l2Box = document.getElementById('logo2_box');
+            if(data.logo2_on && data.logo2_url) {
+                document.getElementById('logo2_img').src = data.logo2_url;
+                l2Box.style.display = 'flex';
+            } else { l2Box.style.display = 'none'; }
+
+            // ৩. টাইমার হ্যান্ডেলিং (রিয়েল-টাইম স্মুথ করার জন্য)
+            isTimerRunning = data.timer_run;
+            const dbSecs = timeToSeconds(data.match_time);
+            if(Math.abs(localTimeSec - dbSecs) > 3) {
+                localTimeSec = dbSecs;
+                document.getElementById('view_time').innerText = data.match_time;
+            }
+
+            // ৪. নিউজ টিকার
+            const ticker = document.getElementById('ticker');
+            if(data.ticker_on && data.ticker_text) {
+                document.getElementById('view_ticker_text').innerText = data.ticker_text;
+                document.getElementById('view_ticker_text').style.animationDuration = (data.ticker_speed || 10) + 's';
+                ticker.style.visibility = 'visible';
+            } else { ticker.style.visibility = 'hidden'; }
+
+            // ৫. লোয়ার থার্ড
+            const l3 = document.getElementById('lower_third');
+            if(data.lower_third_on && data.lower_third_title) {
+                document.getElementById('view_l3_title').innerText = data.lower_third_title;
+                document.getElementById('view_l3_sub').innerText = data.lower_third_sub;
+                l3.style.visibility = 'visible';
+            } else { l3.style.visibility = 'hidden'; }
+
+            // ৬. শ্যুটআউট প্যানেল
+            document.getElementById('shootout').style.visibility = data.shootout_on ? 'visible' : 'hidden';
+            document.getElementById('so_name_a').innerText = data.team_a;
+            document.getElementById('so_name_b').innerText = data.team_b;
+            const shots = ['ta_s1','ta_s2','ta_s3','ta_s4','ta_s5','tb_s1','tb_s2','tb_s3','tb_s4','tb_s5'];
+            shots.forEach(s => renderShot(s, data[s]));
         }
 
         async function init() {
+            // প্রাথমিক ডাটা লোড
             const { data } = await supabase.from('overlays').select('*').eq('id', 1).single();
-            if (data) renderOverlay(data);
+            if(data) {
+                localTimeSec = timeToSeconds(data.match_time);
+                updateOverlay(data);
+            }
+            startLocalTimer();
 
+            // সুপাবেস রিয়েল-টাইম ব্রডকাস্ট লিসেনার (১ সেকেন্ডের মধ্যে OBS আপডেট হবে)
             supabase.channel('custom-all-channel')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'overlays' }, payload => {
-                renderOverlay(payload.new);
-            }).subscribe();
+            .on('postgres_changes', { event: 'UPDATE', filter: 'id=eq.1', schema: 'public', table: 'overlays' }, (payload) => {
+                updateOverlay(payload.new);
+            })
+            .subscribe();
         }
 
         window.onload = init;
