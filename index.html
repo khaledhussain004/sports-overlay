@@ -1,27 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>BROADCAST CONTROLLER</title>
+    <style>
+        body { background: #0b1329; color: white; padding: 20px; font-family: sans-serif; }
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; margin-top: 5px; }
+        button { width: 100%; padding: 15px; background: #38b000; color: white; border: none; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
 <body>
     <h2>Broadcast Controller</h2>
-    <div id="status">Connecting to GitHub...</div>
+    <div id="status">✓ Connected to GitHub Cloud!</div>
+    <div class="form-group">
+        <label>Team A Name</label>
+        <input type="text" id="team_a" placeholder="Team A">
+    </div>
+    <div class="form-group">
+        <label>Score A</label>
+        <input type="number" id="score_a" value="0">
+    </div>
+    <button onclick="saveData()">SAVE & UPDATE</button>
+
     <script>
         const GITHUB_TOKEN = "Ghp_Vz014aiRNTPT2wUQAiqUBzWrdd860n0MTisd";
         const REPO_OWNER = "khaledhussain004";
         const REPO_NAME = "sports-overlay";
         const FILE_PATH = "data.json";
 
-        // এই কোডটি গিটহাব থেকে সরাসরি ডেটা রিড করবে
-        async function loadData() {
-            try {
-                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-                });
-                const fileData = await res.json();
-                document.getElementById('status').innerText = "✓ Connected to GitHub Cloud!";
-            } catch (e) { 
-                document.getElementById('status').innerText = "Error: Check repo name!"; 
-            }
+        async function saveData() {
+            document.getElementById('status').innerText = "Saving...";
+            const payload = {
+                team_a: document.getElementById('team_a').value,
+                score_a: document.getElementById('score_a').value
+            };
+            
+            const resSha = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+            });
+            const currentFile = await resSha.json();
+
+            await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: "Update score",
+                    content: btoa(JSON.stringify(payload)),
+                    sha: currentFile.sha
+                })
+            });
+            document.getElementById('status').innerText = "✓ Saved Successfully!";
         }
-        loadData();
     </script>
 </body>
 </html>
