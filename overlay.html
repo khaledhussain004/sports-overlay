@@ -88,7 +88,6 @@
         function updateUI(data) {
             if(!data) return;
             
-            // স্কোরবোর্ড রেন্ডার
             document.getElementById('scoreboard').style.visibility = data.show_scoreboard ? 'visible' : 'hidden';
             document.getElementById('view_team_a').innerText = data.team_a || 'TEAM A';
             document.getElementById('view_score_a').innerText = data.score_a || '0';
@@ -97,7 +96,6 @@
             document.getElementById('view_time').innerText = data.match_time || '00:00';
             document.getElementById('view_period').innerText = data.period || '1st Half';
 
-            // লোগো ১ এবং ২ কন্ট্রোল
             if(data.logo1_on && data.logo1_url) {
                 document.getElementById('logo1_img').src = data.logo1_url;
                 document.getElementById('logo1_box').style.display = 'flex';
@@ -108,7 +106,6 @@
                 document.getElementById('logo2_box').style.display = 'flex';
             } else { document.getElementById('logo2_box').style.display = 'none'; }
 
-            // ব্রেকিং নিউজ টিকার
             const ticker = document.getElementById('ticker');
             if(data.ticker_on && data.ticker_text) {
                 document.getElementById('view_ticker_text').innerText = data.ticker_text;
@@ -116,7 +113,6 @@
                 ticker.style.visibility = 'visible';
             } else { ticker.style.visibility = 'hidden'; }
 
-            // লোয়ার থার্ড
             const l3 = document.getElementById('lower_third');
             if(data.lower_third_on && data.lower_third_title) {
                 document.getElementById('view_l3_title').innerText = data.lower_third_title;
@@ -124,7 +120,6 @@
                 l3.style.visibility = 'visible';
             } else { l3.style.visibility = 'hidden'; }
 
-            // প্লেয়ার স্কোয়াড লিস্ট রেন্ডার
             const lineupPanel = document.getElementById('lineup_screen');
             if(data.lineup_on) {
                 document.getElementById('view_lineup_title').innerText = data.lineup_title || 'PLAYER SQUAD';
@@ -144,7 +139,6 @@
             } else { lineupPanel.classList.remove('show'); }
         }
 
-        // রিয়েল-টাইম লাইভ ব্রডকাস্ট লিসেনার (ডাটাবেস টেবিল ছাড়া চলে)
         const channel = supabase.channel('broadcast_sports_relay');
         channel.on('broadcast', { event: 'live_update' }, (payload) => {
             updateUI(payload.payload);
