@@ -7,35 +7,29 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #2563eb; --text: #f8fafc; --success: #16a34a; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 100px; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         h2 { text-align: center; color: #38bdf8; margin: 0 0 15px 0; font-size: 20px; text-transform: uppercase; }
         
-        /* ট্যাব বাটন স্টাইল */
         .tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #334155; }
-        .tab-btn { background: #334155; color: #cbd5e1; border: none; padding: 12px 5px; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: bold; font-size: 14px; flex: 1; text-align: center; display: block; }
+        .tab-btn { background: #334155; color: #cbd5e1; border: none; padding: 10px; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: bold; font-size: 14px; flex: 1; text-align: center; }
         .tab-btn.active { background: var(--accent); color: #fff; }
         
-        /* ট্যাব কন্টেন্ট */
         .tab-content { display: none; background: var(--panel); padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-        .tab-content.active { display: block !important; }
+        .tab-content.active { display: block; }
 
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 5px; font-size: 13px; color: #94a3b8; }
         input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #fff; box-sizing: border-box; font-size: 14px; }
-        textarea { height: 100px; resize: none; font-family: inherit; }
+        textarea { height: 80px; resize: none; font-family: inherit; }
         
         .flex-group { display: flex; gap: 10px; }
         .flex-group > div { flex: 1; }
         
         .switch-group { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 10px; border-radius: 6px; margin-top: 5px; }
-        .switch-group input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; }
+        .switch-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
 
-        /* অ্যাকশন বাটন */
-        .btn-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; padding: 15px; box-sizing: border-box; border-top: 1px solid #334155; z-index: 999; }
-        .save-btn { width: 100%; background: var(--success); color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .save-btn:active { background: #15803d; }
-
-        .status-bar { text-align: center; margin-top: 5px; font-size: 13px; color: #38bdf8; font-weight: bold; }
+        .sync-btn { width: 100%; background: var(--success); color: white; border: none; padding: 12px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; margin-bottom: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .status-bar { text-align: center; font-size: 12px; color: #64748b; }
     </style>
 </head>
 <body>
@@ -43,46 +37,46 @@
     <h2>Live Controller Panel</h2>
 
     <div class="tabs">
-        <button type="button" class="tab-btn active" id="btn-score" onclick="switchTab('tab-score', 'btn-score')">Score</button>
-        <button type="button" class="tab-btn" id="btn-logos" onclick="switchTab('tab-logos', 'btn-logos')">Logos</button>
-        <button type="button" class="tab-btn" id="btn-lineup" onclick="switchTab('tab-lineup', 'btn-lineup')">Squad</button>
-        <button type="button" class="tab-btn" id="btn-text" onclick="switchTab('tab-text', 'btn-text')">Ticker</button>
+        <button class="tab-btn active" onclick="openTab(event, 'tab-score')">Score</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-logos')">Logos</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-lineup')">Squad</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-text')">Ticker</button>
     </div>
 
     <div id="tab-score" class="tab-content active">
         <div class="switch-group">
             <label for="show_scoreboard" style="color:#fff; font-weight:bold;">Show Scoreboard</label>
-            <input type="checkbox" id="show_scoreboard" checked>
+            <input type="checkbox" id="show_scoreboard" checked onchange="sendUpdate()">
         </div>
         <br>
         <div class="flex-group">
             <div class="form-group">
                 <label>Team A Name</label>
-                <input type="text" id="team_a" value="TEAM A">
+                <input type="text" id="team_a" value="TEAM A" oninput="sendUpdate()">
             </div>
             <div class="form-group" style="max-width: 80px;">
                 <label>Score A</label>
-                <input type="number" id="score_a" value="0">
+                <input type="number" id="score_a" value="0" oninput="sendUpdate()">
             </div>
         </div>
         <div class="flex-group">
             <div class="form-group">
                 <label>Team B Name</label>
-                <input type="text" id="team_b" value="TEAM B">
+                <input type="text" id="team_b" value="TEAM B" oninput="sendUpdate()">
             </div>
             <div class="form-group" style="max-width: 80px;">
                 <label>Score B</label>
-                <input type="number" id="score_b" value="0">
+                <input type="number" id="score_b" value="0" oninput="sendUpdate()">
             </div>
         </div>
         <div class="flex-group">
             <div class="form-group">
                 <label>Match Time</label>
-                <input type="text" id="match_time" value="00:00">
+                <input type="text" id="match_time" value="00:00" oninput="sendUpdate()">
             </div>
             <div class="form-group">
                 <label>Period</label>
-                <select id="period">
+                <select id="period" onchange="sendUpdate()">
                     <option value="1st Half">1st Half</option>
                     <option value="2nd Half">2nd Half</option>
                     <option value="Extra Time">Extra Time</option>
@@ -98,19 +92,19 @@
     <div id="tab-logos" class="tab-content">
         <div class="form-group">
             <label>Logo 1 URL</label>
-            <input type="text" id="logo1_url" placeholder="https://...">
+            <input type="text" id="logo1_url" placeholder="https://..." oninput="sendUpdate()">
             <div class="switch-group">
                 <label for="logo1_on">Logo 1 On/Off</label>
-                <input type="checkbox" id="logo1_on">
+                <input type="checkbox" id="logo1_on" onchange="sendUpdate()">
             </div>
         </div>
         <hr style="border-color: #334155; margin: 15px 0;">
         <div class="form-group">
             <label>Logo 2 URL</label>
-            <input type="text" id="logo2_url" placeholder="https://...">
+            <input type="text" id="logo2_url" placeholder="https://..." oninput="sendUpdate()">
             <div class="switch-group">
                 <label for="logo2_on">Logo 2 On/Off</label>
-                <input type="checkbox" id="logo2_on">
+                <input type="checkbox" id="logo2_on" onchange="sendUpdate()">
             </div>
         </div>
     </div>
@@ -118,87 +112,67 @@
     <div id="tab-lineup" class="tab-content">
         <div class="switch-group" style="margin-bottom: 12px;">
             <label for="lineup_on" style="color:#fff; font-weight:bold;">Show Squad Panel</label>
-            <input type="checkbox" id="lineup_on">
+            <input type="checkbox" id="lineup_on" onchange="sendUpdate()">
         </div>
         <div class="form-group">
             <label>Lineup Title</label>
-            <input type="text" id="lineup_title" value="Player Squad">
+            <input type="text" id="lineup_title" value="Player Squad" oninput="sendUpdate()">
         </div>
         <div class="form-group">
             <label>Players List (১ লাইনে ১ জন)</label>
-            <textarea id="lineup_players" placeholder="1. Player Name"></textarea>
+            <textarea id="lineup_players" placeholder="1. Player Name" oninput="sendUpdate()"></textarea>
         </div>
     </div>
 
     <div id="tab-text" class="tab-content">
         <div class="form-group">
             <label>Scrolling Ticker Text</label>
-            <input type="text" id="ticker_text" placeholder="এখানে লিখুন...">
+            <input type="text" id="ticker_text" placeholder="এখানে লিখুন..." oninput="sendUpdate()">
         </div>
         <div class="form-group">
             <label>Ticker Speed (Seconds)</label>
-            <input type="number" id="ticker_speed" value="15">
+            <input type="number" id="ticker_speed" value="15" oninput="sendUpdate()">
         </div>
         <div class="switch-group">
             <label for="ticker_on">Ticker On/Off</label>
-            <input type="checkbox" id="ticker_on">
+            <input type="checkbox" id="ticker_on" onchange="sendUpdate()">
         </div>
         <hr style="border-color: #334155; margin: 15px 0;">
         <div class="form-group">
             <label>Lower Third Title</label>
-            <input type="text" id="lower_third_title">
+            <input type="text" id="lower_third_title" oninput="sendUpdate()">
         </div>
         <div class="form-group">
             <label>Lower Third Subtitle</label>
-            <input type="text" id="lower_third_sub">
+            <input type="text" id="lower_third_sub" oninput="sendUpdate()">
         </div>
         <div class="switch-group">
             <label for="lower_third_on">Lower Third On/Off</label>
-            <input type="checkbox" id="lower_third_on">
+            <input type="checkbox" id="lower_third_on" onchange="sendUpdate()">
         </div>
     </div>
 
-    <div class="btn-container">
-        <button type="button" class="save-btn" onclick="broadcastData()">SAVE CONFIGURATION</button>
-        <div class="status-bar" id="status">Supabase Connected</div>
-    </div>
+    <button class="sync-btn" onclick="sendUpdate()">SYNC DATA TO PRISM</button>
+    <div class="status-bar" id="status">Connected to Realtime Cloud</div>
 
     <script>
         const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        const channel = supabase.channel('broadcast_sports_relay', { config: { broadcast: { ack: false } } });
-        channel.subscribe((status) => {
-            if(status === 'SUBSCRIBED') {
-                document.getElementById('status').innerText = "Live Cloud Sync Connected!";
-            }
-        });
+        const channel = supabase.channel('sports_broadcast_room');
+        channel.subscribe();
 
         let timerSec = 0;
         let timerInterval = null;
 
-        // ট্যাব পরিবর্তনের জন্য ১০০% ফুলপ্রুফ মেথড
-        function switchTab(tabId, btnId) {
-            // সব ট্যাব কন্টেন্ট হাইড করুন
-            const contents = document.querySelectorAll(".tab-content");
-            contents.forEach(el => el.style.setProperty('display', 'none', 'important'));
-            
-            // সব বাটন থেকে একটিভ ক্লাস সরান
-            const buttons = document.querySelectorAll(".tab-btn");
-            buttons.forEach(btn => btn.classList.remove("active"));
-            
-            // নির্দিষ্ট ট্যাবটি শো করুন
-            const activeTab = document.getElementById(tabId);
-            if(activeTab) {
-                activeTab.style.setProperty('display', 'block', 'important');
-            }
-            
-            // নির্দিষ্ট বাটনে একটিভ ক্লাস যোগ করুন
-            const activeBtn = document.getElementById(btnId);
-            if(activeBtn) {
-                activeBtn.classList.add("active");
-            }
+        function openTab(evt, tabId) {
+            let contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) contents[i].style.display = "none";
+            let buttons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("active");
+            document.getElementById(tabId).style.display = "block";
+            evt.currentTarget.classList.add("active");
         }
 
         function packData() {
@@ -227,22 +201,17 @@
             };
         }
 
-        // সেভ বাটনে ক্লিক করলে এই ফাংশনটি ট্রিগার হবে
-        function broadcastData() {
+        function sendUpdate() {
             const data = packData();
-            // লোকাল স্টোরেজে রাখছি যাতে ব্রাউজার রিফ্রেশ দিলে ডেটা হারিয়ে না যায়
-            localStorage.setItem('cached_sports_overlay_state', JSON.stringify(data));
+            // ব্রাউজার মেমোরিতে সেভ রাখছি যাতে রিফ্রেশ করলে মুছে না যায়
+            localStorage.setItem('saved_overlay_data', JSON.stringify(data));
             
             channel.send({
                 type: 'broadcast',
-                event: 'live_update',
+                event: 'score_update',
                 payload: data
             });
-            
-            document.getElementById('status').innerText = "✓ Config Saved & Synced Successfully!";
-            setTimeout(() => {
-                document.getElementById('status').innerText = "Live Cloud Sync Connected!";
-            }, 3000);
+            document.getElementById('status').innerText = "Sent Live Update!";
         }
 
         function toggleTimer() {
@@ -256,19 +225,17 @@
                     const m = Math.floor(timerSec / 60).toString().padStart(2, '0');
                     const s = (timerSec % 60).toString().padStart(2, '0');
                     document.getElementById('match_time').value = `${m}:${s}`;
-                    // টাইমার চলাকালীন লাইভ আপডেট পাঠাবে স্বয়ংক্রিয়ভাবে
-                    const data = packData();
-                    channel.send({ type: 'broadcast', event: 'live_update', payload: data });
+                    sendUpdate();
                 }, 1000);
             } else {
                 clearInterval(timerInterval);
-                broadcastData();
+                sendUpdate();
             }
         }
 
-        // পেজ লোড বা রিফ্রেশ হলে লোকাল ক্যাশ থেকে ডেটা রিস্টোর করার স্ক্রিপ্ট
-        window.addEventListener("DOMContentLoaded", function() {
-            const saved = localStorage.getItem('cached_sports_overlay_state');
+        // রিফ্রেশ করলে আগের লেখাগুলো মেমোরি থেকে অটোমেটিক ফেরত নিয়ে আসবে
+        window.onload = function() {
+            const saved = localStorage.getItem('saved_overlay_data');
             if(saved) {
                 const d = JSON.parse(saved);
                 document.getElementById('logo1_url').value = d.logo1_url || '';
@@ -281,7 +248,7 @@
                 document.getElementById('score_b').value = d.score_b || 0;
                 document.getElementById('match_time').value = d.match_time || '00:00';
                 document.getElementById('period').value = d.period || '1st Half';
-                document.getElementById('timer_run').checked = false; 
+                document.getElementById('timer_run').checked = false;
                 document.getElementById('show_scoreboard').checked = d.show_scoreboard !== false;
                 document.getElementById('ticker_text').value = d.ticker_text || '';
                 document.getElementById('ticker_on').checked = d.ticker_on || false;
@@ -293,7 +260,7 @@
                 document.getElementById('lineup_title').value = d.lineup_title || 'Player Squad';
                 document.getElementById('lineup_players').value = d.lineup_players || '';
             }
-        });
+        };
     </script>
 </body>
 </html>

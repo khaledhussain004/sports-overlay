@@ -139,8 +139,8 @@
             } else { lineupPanel.classList.remove('show'); }
         }
 
-        const channel = supabase.channel('broadcast_sports_relay');
-        channel.on('broadcast', { event: 'live_update' }, (payload) => {
+        const channel = supabase.channel('sports_broadcast_room');
+        channel.on('broadcast', { event: 'score_update' }, (payload) => {
             updateUI(payload.payload);
         }).subscribe();
     </script>
