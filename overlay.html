@@ -1,211 +1,27 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>LIVE OVERLAY RENDER OUT</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; padding: 0; background: transparent; overflow: hidden; font-family: 'Arial', sans-serif; color: white; }
-        
-        /* SCOREBOARD POSITION */
-        .scoreboard-container { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; display: none; z-index: 10; }
-        .logo-box { width: 45px; height: 45px; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; border-radius: 6px; margin-right: 6px; overflow: hidden; display: none; }
-        .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
-        
-        .main-bar { background: rgba(10, 15, 30, 0.95); display: flex; align-items: center; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.7); overflow: hidden; height: 46px; border: 1px solid #1e293b; }
-        .team-name { padding: 0 20px; font-weight: bold; font-size: 18px; text-transform: uppercase; min-width: 100px; text-align: center; }
-        .team-a { border-left: 5px solid #e63946; }
-        .team-b { border-right: 5px solid #00b4d8; }
-        .score { font-size: 24px; font-weight: 900; padding: 0 18px; height: 100%; display: flex; align-items: center; justify-content: center; background: #050a14; }
-        .score-a { color: #e63946; }
-        .score-b { color: #00b4d8; }
-        
-        .time-box { background: #1d3557; height: 100%; padding: 0 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 85px; }
-        .time-display { font-size: 19px; font-weight: bold; font-family: monospace; color: #fff; }
-        .period-display { font-size: 9px; text-transform: uppercase; color: #a8dadc; font-weight: bold; margin-top: -1px; }
-
-        /* TICKER */
-        .ticker-wrap { position: absolute; bottom: 0; left: 0; width: 100%; background: #0a0f1e; border-top: 3px solid #e63946; height: 36px; display: flex; align-items: center; display: none; z-index: 5; }
-        .ticker-title { background: #e63946; color: white; padding: 0 18px; height: 100%; display: flex; align-items: center; font-weight: bold; font-size: 14px; z-index: 6; white-space: nowrap; }
-        .ticker-nav { flex: 1; overflow: hidden; display: flex; align-items: center; }
-        .ticker-text { display: inline-block; white-space: nowrap; padding-left: 100%; font-size: 15px; font-weight: bold; animation: marquee linear infinite; }
-        @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
-
-        /* SQUAD LINEUP */
-        .lineup-panel { position: absolute; top: 120px; left: 40px; background: rgba(10, 15, 30, 0.95); border: 1px solid #334155; border-left: 6px solid #3a86ff; border-radius: 6px; padding: 20px; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); display: none; z-index: 9; }
-        .lineup-header { font-size: 16px; font-weight: bold; text-transform: uppercase; color: #00b4d8; border-bottom: 2px solid #334155; padding-bottom: 6px; margin-bottom: 12px; letter-spacing: 0.5px; }
-        .player-row { font-size: 14px; font-weight: 600; padding: 6px 0; border-bottom: 1px solid rgba(51,65,85,0.3); color: #e2e8f0; }
-
-        /* LOWER THIRD */
-        .l3-container { position: absolute; bottom: 55px; left: 40px; display: none; z-index: 8; }
-        .l3-main { background: linear-gradient(90deg, #1d3557 0%, rgba(10,15,30,0.8) 100%); padding: 10px 25px; border-left: 6px solid #00b4d8; border-radius: 0 6px 6px 0; border: 1px solid #1e293b; }
-        .l3-title { font-size: 20px; font-weight: bold; margin: 0; color: #fff; }
-        .l3-sub { font-size: 14px; color: #00b4d8; margin-top: 2px; font-weight: 500; }
-
-        /* SHOOTOUT TIEBREAKER */
-        .shootout-panel { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); background: rgba(10, 15, 30, 0.95); border-radius: 6px; padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #334155; display: none; z-index: 9; box-shadow: 0 10px 20px rgba(0,0,0,0.6); }
-        .so-row { display: flex; align-items: center; justify-content: space-between; min-width: 290px; gap: 15px; }
-        .so-name { font-size: 14px; font-weight: bold; text-transform: uppercase; }
-        .so-dots { display: flex; gap: 6px; }
-        .so-dot { width: 22px; height: 22px; border-radius: 4px; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; }
-        .so-dot.goal { background: #38b000; color: #fff; }
-        .so-dot.miss { background: #dc2626; color: #fff; }
+        body { font-family: sans-serif; color: white; background: transparent; }
+        .score-board { font-size: 40px; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="scoreboard-container" id="scoreboard">
-        <div class="logo-box" id="logo1_box"><img id="logo1_img" src=""></div>
-        <div class="main-bar">
-            <div class="team-name team-a" id="view_team_a">TEAM A</div>
-            <div class="score score-a" id="view_score_a">0</div>
-            <div class="time-box">
-                <div class="time-display" id="view_time">00:00</div>
-                <div class="period-display" id="view_period">1st Half</div>
-            </div>
-            <div class="score score-b" id="view_score_b">0</div>
-            <div class="team-name team-b" id="view_team_b">TEAM B</div>
-        </div>
-        <div class="logo-box" id="logo2_box" style="margin-right: 0; margin-left: 6px;"><img id="logo2_img" src=""></div>
-    </div>
-
-    <div class="shootout-panel" id="shootout">
-        <div class="so-row">
-            <span class="so-name" id="so_name_a" style="color: #e63946;">Team A</span>
-            <div class="so-dots">
-                <div class="so-dot" id="v_ta_s1">-</div>
-                <div class="so-dot" id="v_ta_s2">-</div>
-                <div class="so-dot" id="v_ta_s3">-</div>
-                <div class="so-dot" id="v_ta_s4">-</div>
-                <div class="so-dot" id="v_ta_s5">-</div>
-            </div>
-        </div>
-        <div class="so-row">
-            <span class="so-name" id="so_name_b" style="color: #00b4d8;">Team B</span>
-            <div class="so-dots">
-                <div class="so-dot" id="v_tb_s1">-</div>
-                <div class="so-dot" id="v_tb_s2">-</div>
-                <div class="so-dot" id="v_tb_s3">-</div>
-                <div class="so-dot" id="v_tb_s4">-</div>
-                <div class="so-dot" id="v_tb_s5">-</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="lineup-panel" id="lineup_screen">
-        <div class="lineup-header" id="view_lineup_title">PLAYER SQUAD</div>
-        <div id="players_container"></div>
-    </div>
-
-    <div class="l3-container" id="lower_third">
-        <div class="l3-main">
-            <div class="l3-title" id="view_l3_title"></div>
-            <div class="l3-sub" id="view_l3_sub"></div>
-        </div>
-    </div>
-
-    <div class="ticker-wrap" id="ticker">
-        <div class="ticker-title">LIVE UPDATE</div>
-        <div class="ticker-nav">
-            <div class="ticker-text" id="view_ticker_text"></div>
-        </div>
+    <div class="score-board">
+        <span id="team_a">Team A</span>: <span id="score_a">0</span> | 
+        <span id="team_b">Team B</span>: <span id="score_b">0</span>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        function setShotDot(id, state) {
-            const el = document.getElementById('v_' + id);
-            if(!el) return;
-            el.className = 'so-dot';
-            if(state === 'goal') { el.classList.add('goal'); el.innerText = '✓'; }
-            else if(state === 'miss') { el.classList.add('miss'); el.innerText = '✕'; }
-            else { el.innerText = '-'; }
+        async function updateScore() {
+            const res = await fetch('https://khaledhussain004.github.io/sports-overlay/data.json?t=' + new Date().getTime());
+            const data = await res.json();
+            document.getElementById('team_a').innerText = data.team_a;
+            document.getElementById('score_a').innerText = data.score_a;
+            document.getElementById('team_b').innerText = data.team_b;
+            document.getElementById('score_b').innerText = data.score_b;
         }
-
-        function renderOverlay(data) {
-            if(!data) return;
-
-            document.getElementById('scoreboard').style.display = data.show_scoreboard ? 'flex' : 'none';
-            document.getElementById('view_team_a').innerText = data.team_a;
-            document.getElementById('view_score_a').innerText = data.score_a;
-            document.getElementById('view_team_b').innerText = data.team_b;
-            document.getElementById('view_score_b').innerText = data.score_b;
-            document.getElementById('view_time').innerText = data.match_time;
-            document.getElementById('view_period').innerText = data.period;
-
-            document.getElementById('so_name_a').innerText = data.team_a;
-            document.getElementById('so_name_b').innerText = data.team_b;
-
-            if(data.logo1_on && data.logo1_url && data.logo1_url.startsWith('http')) {
-                document.getElementById('logo1_img').src = data.logo1_url;
-                document.getElementById('logo1_box').style.display = 'flex';
-            } else { document.getElementById('logo1_box').style.display = 'none'; }
-
-            if(data.logo2_on && data.logo2_url) {
-                document.getElementById('logo2_img').src = data.logo2_url;
-                document.getElementById('logo2_box').style.display = 'flex';
-            } else { document.getElementById('logo2_box').style.display = 'none'; }
-
-            if(data.ticker_on && data.ticker_text) {
-                document.getElementById('view_ticker_text').innerText = data.ticker_text;
-                document.getElementById('view_ticker_text').style.animationDuration = data.ticker_speed + 's';
-                document.getElementById('ticker').style.display = 'flex';
-            } else { document.getElementById('ticker').style.display = 'none'; }
-
-            if(data.lower_third_on && data.lower_third_title) {
-                document.getElementById('view_l3_title').innerText = data.lower_third_title;
-                document.getElementById('view_l3_sub').innerText = data.lower_third_sub || '';
-                document.getElementById('lower_third').style.display = 'block';
-            } else { document.getElementById('lower_third').style.display = 'none'; }
-
-            if(data.lineup_on) {
-                let titlePart = data.lineup_title || "Player Squad";
-                if(titlePart.includes("||")) titlePart = titlePart.split("||")[0];
-                document.getElementById('view_lineup_title').innerText = titlePart;
-                
-                const pContainer = document.getElementById('players_container');
-                pContainer.innerHTML = '';
-                if(data.lineup_players) {
-                    data.lineup_players.split('\n').forEach(pName => {
-                        if(pName.trim() !== "") {
-                            const row = document.createElement('div');
-                            row.className = 'player-row';
-                            row.innerText = pName;
-                            pContainer.appendChild(row);
-                        }
-                    });
-                }
-                document.getElementById('lineup_screen').style.display = 'block';
-            } else { document.getElementById('lineup_screen').style.display = 'none'; }
-
-            // Parse Tiebreaker / Shootout states safely
-            if(data.lineup_title && data.lineup_title.includes("||")) {
-                const parts = data.lineup_title.split("||")[1].split("|");
-                const so_on = parts[0] === 'on';
-                document.getElementById('shootout').style.display = so_on ? 'flex' : 'none';
-                setShotDot('ta_s1', parts[1]); setShotDot('ta_s2', parts[2]); setShotDot('ta_s3', parts[3]); setShotDot('ta_s4', parts[4]); setShotDot('ta_s5', parts[5]);
-                setShotDot('tb_s1', parts[6]); setShotDot('tb_s2', parts[7]); setShotDot('tb_s3', parts[8]); setShotDot('tb_s4', parts[9]); setShotDot('tb_s5', parts[10]);
-            } else {
-                document.getElementById('shootout').style.display = 'none';
-            }
-        }
-
-        async function init() {
-            const { data } = await supabase.from('overlays').select('*').eq('id', 1).single();
-            if(data) renderOverlay(data);
-        }
-
-        supabase
-            .channel('schema-db-changes')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'overlays' }, payload => {
-                renderOverlay(payload.new);
-            })
-            .subscribe();
-
-        window.addEventListener('DOMContentLoaded', init);
+        setInterval(updateScore, 2000); // প্রতি ২ সেকেন্ডে স্কোর রিফ্রেশ হবে
     </script>
 </body>
 </html>
