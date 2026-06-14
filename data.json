@@ -1,0 +1,23 @@
+{
+  "show_scoreboard": true,
+  "team_a": "TEAM A",
+  "score_a": "0",
+  "team_b": "TEAM B",
+  "score_b": "0",
+  "match_time": "00:00",
+  "period": "1st Half",
+  "timer_run": false,
+  "logo1_url": "",
+  "logo1_on": false,
+  "logo2_url": "",
+  "logo2_on": false,
+  "lower_third_title": "",
+  "lower_third_sub": "",
+  "lower_third_on": false,
+  "lineup_on": false,
+  "lineup_title": "Player Squad",
+  "lineup_players": "",
+  "ticker_text": "",
+  "ticker_speed": "15",
+  "ticker_on": false
+}
