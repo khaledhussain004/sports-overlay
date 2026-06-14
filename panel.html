@@ -1,263 +1,27 @@
 <!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BROADCAST CONTROLLER SUITE</title>
-    <style>
-        :root { --bg: #0b1329; --panel: #1c2541; --accent: #3a86ff; --text: #f8fafc; --success: #38b000; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
-        h2 { text-align: center; color: #00b4d8; margin: 0 0 15px 0; font-size: 18px; text-transform: uppercase; }
-        .tabs { display: flex; gap: 4px; margin-bottom: 15px; background: #111a36; padding: 4px; border-radius: 8px; overflow-x: auto; }
-        .tab-btn { background: transparent; color: #a3b18a; border: none; padding: 12px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; text-align: center; white-space: nowrap; }
-        .tab-btn.active { background: var(--accent); color: #fff; }
-        .tab-content { display: none; background: var(--panel); padding: 15px; border-radius: 8px; }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
-        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 12px; background: #0b1329; border: 1px solid #475569; border-radius: 6px; color: #fff; box-sizing: border-box; }
-        .flex-group { display: flex; gap: 10px; }
-        .flex-group > div { flex: 1; }
-        .switch-group { display: flex; align-items: center; justify-content: space-between; background: #0b1329; padding: 12px; border-radius: 6px; border: 1px solid #1e293b; margin-bottom: 10px; }
-        .btn-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #0b1329; padding: 12px; box-sizing: border-box; border-top: 1px solid #1e293b; }
-        .save-btn { width: 100%; background: var(--success); color: white; border: none; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .status-bar { text-align: center; font-size: 12px; color: #00b4d8; font-weight: bold; margin-top: 6px; }
-    </style>
-</head>
+<html>
 <body>
-
-    <h2>Broadcast Controller Suite</h2>
-    <div class="tabs">
-        <button type="button" class="tab-btn active" onclick="switchTab('score')">Score & Time</button>
-        <button type="button" class="tab-btn" onclick="switchTab('logos')">Logos</button>
-        <button type="button" class="tab-btn" onclick="switchTab('tie')">Tiebreaker</button>
-        <button type="button" class="tab-btn" onclick="switchTab('squad')">Squad & Ticker</button>
-    </div>
-
-    <div id="tab-score" class="tab-content" style="display: block;">
-        <div class="switch-group">
-            <label style="color:#fff; font-weight:bold; margin:0;">Show Scoreboard</label>
-            <input type="checkbox" id="show_scoreboard" checked>
-        </div>
-        <br>
-        <div class="flex-group">
-            <div class="form-group">
-                <label>Team A Name</label>
-                <input type="text" id="team_a">
-            </div>
-            <div class="form-group" style="max-width: 80px;">
-                <label>Score A</label>
-                <input type="text" id="score_a">
-            </div>
-        </div>
-        <div class="flex-group">
-            <div class="form-group">
-                <label>Team B Name</label>
-                <input type="text" id="team_b">
-            </div>
-            <div class="form-group" style="max-width: 80px;">
-                <label>Score B</label>
-                <input type="text" id="score_b">
-            </div>
-        </div>
-        <div class="flex-group">
-            <div class="form-group">
-                <label>Match Time (MM:SS)</label>
-                <input type="text" id="match_time">
-            </div>
-            <div class="form-group">
-                <label>Period / Half</label>
-                <input type="text" id="period">
-            </div>
-        </div>
-        <div class="switch-group">
-            <label style="margin:0;">Timer Run / Pause</label>
-            <input type="checkbox" id="timer_run">
-        </div>
-    </div>
-
-    <div id="tab-logos" class="tab-content">
-        <div class="form-group">
-            <label>Team A Logo URL</label>
-            <input type="text" id="logo1_url">
-        </div>
-        <div class="switch-group">
-            <label style="margin:0;">Show Team A Logo</label>
-            <input type="checkbox" id="logo1_on">
-        </div>
-        <div class="form-group">
-            <label>Team B Logo URL</label>
-            <input type="text" id="logo2_url">
-        </div>
-        <div class="switch-group">
-            <label style="margin:0;">Show Team B Logo</label>
-            <input type="checkbox" id="logo2_on">
-        </div>
-    </div>
-
-    <div id="tab-tie" class="tab-content">
-        <div class="form-group">
-            <label>Team A Penalties (e.g. 🟢🔴🟢)</label>
-            <input type="text" id="lower_third_title" placeholder="যেমন: 🟢🔴🟢">
-        </div>
-        <div class="form-group">
-            <label>Team B Penalties (e.g. 🟢🟢🔴)</label>
-            <input type="text" id="lower_third_sub" placeholder="যেমন: 🟢🟢🔴">
-        </div>
-        <div class="switch-group">
-            <label style="margin:0;">Show Penalty Overlay</label>
-            <input type="checkbox" id="lower_third_on">
-        </div>
-    </div>
-
-    <div id="tab-squad" class="tab-content">
-        <div class="switch-group">
-            <label style="color:#fff; font-weight:bold; margin:0;">Show Squad Panel</label>
-            <input type="checkbox" id="lineup_on">
-        </div>
-        <div class="form-group">
-            <label>Squad Title</label>
-            <input type="text" id="lineup_title" value="Player Squad">
-        </div>
-        <div class="form-group">
-            <label>Players List (1 per line)</label>
-            <textarea id="lineup_players" style="height:100px; color:white; background:#0b1329; width:100%; border-radius:6px; padding:10px;"></textarea>
-        </div>
-        <hr style="border-color:#475569; margin:15px 0;">
-        <div class="form-group">
-            <label>Scrolling Ticker Text</label>
-            <input type="text" id="ticker_text">
-        </div>
-        <div class="form-group">
-            <label>Ticker Speed</label>
-            <input type="text" id="ticker_speed" value="15">
-        </div>
-        <div class="switch-group">
-            <label style="margin:0;">Ticker On/Off</label>
-            <input type="checkbox" id="ticker_on">
-        </div>
-    </div>
-
-    <div class="btn-container">
-        <button type="button" class="save-btn" onclick="saveData()">SAVE & UPDATE OVERLAY</button>
-        <div class="status-bar" id="status">GitHub System Ready</div>
-    </div>
-
+    <h2>Broadcast Controller</h2>
+    <div id="status">Connecting to GitHub...</div>
     <script>
         const GITHUB_TOKEN = "Ghp_Vz014aiRNTPT2wUQAiqUBzWrdd860n0MTisd";
         const REPO_OWNER = "khaledhussain004";
-        const REPO_NAME = "sports-overlay"; // আপনার রিপোজিটরির নাম ভুল হলে এটি পরিবর্তন করুন
+        const REPO_NAME = "sports-overlay";
         const FILE_PATH = "data.json";
 
-        function switchTab(tab) {
-            document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
-            document.getElementById("tab-" + tab).style.display = "block";
-            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-            event.currentTarget.classList.add("active");
-        }
-
+        // এই কোডটি গিটহাব থেকে সরাসরি ডেটা রিড করবে
         async function loadData() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
                     headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
                 });
                 const fileData = await res.json();
-                window.fileSha = fileData.sha;
-                const data = JSON.parse(atob(fileData.content));
-                
-                document.getElementById('show_scoreboard').checked = data.show_scoreboard ?? true;
-                document.getElementById('team_a').value = data.team_a || '';
-                document.getElementById('score_a').value = data.score_a || '0';
-                document.getElementById('team_b').value = data.team_b || '';
-                document.getElementById('score_b').value = data.score_b || '0';
-                document.getElementById('match_time').value = data.match_time || '00:00';
-                document.getElementById('period').value = data.period || '1st Half';
-                document.getElementById('timer_run').checked = data.timer_run ?? false;
-                
-                document.getElementById('logo1_url').value = data.logo1_url || '';
-                document.getElementById('logo1_on').checked = data.logo1_on ?? false;
-                document.getElementById('logo2_url').value = data.logo2_url || '';
-                document.getElementById('logo2_on').checked = data.logo2_on ?? false;
-
-                document.getElementById('lower_third_title').value = data.lower_third_title || '';
-                document.getElementById('lower_third_sub').value = data.lower_third_sub || '';
-                document.getElementById('lower_third_on').checked = data.lower_third_on ?? false;
-
-                document.getElementById('lineup_on').checked = data.lineup_on ?? false;
-                document.getElementById('lineup_title').value = data.lineup_title || 'Player Squad';
-                document.getElementById('lineup_players').value = data.lineup_players || '';
-                
-                document.getElementById('ticker_text').value = data.ticker_text || '';
-                document.getElementById('ticker_speed').value = data.ticker_speed || '15';
-                document.getElementById('ticker_on').checked = data.ticker_on ?? false;
-
                 document.getElementById('status').innerText = "✓ Connected to GitHub Cloud!";
-                document.getElementById('status').style.color = "#38b000";
             } catch (e) { 
-                document.getElementById('status').innerText = "Error loading data from GitHub."; 
+                document.getElementById('status').innerText = "Error: Check repo name!"; 
             }
         }
-
-        async function saveData() {
-            document.getElementById('status').innerText = "Saving to GitHub...";
-            document.getElementById('status').style.color = "#3a86ff";
-            
-            const payload = {
-                show_scoreboard: document.getElementById('show_scoreboard').checked,
-                team_a: document.getElementById('team_a').value,
-                score_a: document.getElementById('score_a').value.toString(),
-                team_b: document.getElementById('team_b').value,
-                score_b: document.getElementById('score_b').value.toString(),
-                match_time: document.getElementById('match_time').value,
-                period: document.getElementById('period').value,
-                timer_run: document.getElementById('timer_run').checked,
-                logo1_url: document.getElementById('logo1_url').value,
-                logo1_on: document.getElementById('logo1_on').checked,
-                logo2_url: document.getElementById('logo2_url').value,
-                logo2_on: document.getElementById('logo2_on').checked,
-                lower_third_title: document.getElementById('lower_third_title').value,
-                lower_third_sub: document.getElementById('lower_third_sub').value,
-                lower_third_on: document.getElementById('lower_third_on').checked,
-                lineup_on: document.getElementById('lineup_on').checked,
-                lineup_title: document.getElementById('lineup_title').value,
-                lineup_players: document.getElementById('lineup_players').value,
-                ticker_text: document.getElementById('ticker_text').value,
-                ticker_speed: document.getElementById('ticker_speed').value,
-                ticker_on: document.getElementById('ticker_on').checked
-            };
-
-            try {
-                // Get latest SHA
-                const resSha = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-                });
-                const currentFile = await resSha.json();
-
-                const updateRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: "Update live scores",
-                        content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))),
-                        sha: currentFile.sha
-                    })
-                });
-
-                if(updateRes.ok) {
-                    document.getElementById('status').innerText = "✓ Updated Successfully!";
-                    document.getElementById('status').style.color = "#38b000";
-                } else {
-                    document.getElementById('status').innerText = "Save Failed! Check Repository details.";
-                    document.getElementById('status').style.color = "#ff3333";
-                }
-            } catch(err) {
-                document.getElementById('status').innerText = "Error pushing data.";
-                document.getElementById('status').style.color = "#ff3333";
-            }
-        }
-        window.addEventListener('DOMContentLoaded', loadData);
+        loadData();
     </script>
 </body>
-  </html>
+</html>
