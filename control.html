@@ -3,83 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Broadcast Controller - No DB</title>
+    <title>Advanced Live Controller</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg-color: #121214; --panel-bg: #1a1a1e; --accent: #2563eb; --text: #f3f4f6; --success: #16a34a; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg-color); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
-        h2 { text-align: center; color: #38bdf8; margin-bottom: 15px; font-size: 22px; text-transform: uppercase; }
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #2563eb; --text: #f8fafc; --success: #16a34a; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
+        h2 { text-align: center; color: #38bdf8; margin-bottom: 15px; font-size: 20px; text-transform: uppercase; }
         
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #2d2d34; padding-bottom: 5px; overflow-x: auto; }
-        .tab-btn { background: #2d2d34; color: #9ca3af; border: none; padding: 10px 18px; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: bold; font-size: 14px; white-space: nowrap; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #334155; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { background: #334155; color: #cbd5e1; border: none; padding: 10px 15px; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap; }
         .tab-btn.active { background: var(--accent); color: #fff; }
         
-        .tab-content { display: none; background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .tab-content { display: none; background: var(--panel); padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
         .tab-content.active { display: block; }
 
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 6px; font-size: 14px; color: #9ca3af; }
-        input[type="text"], input[type="number"], select { width: 100%; padding: 12px; background: #2d2d34; border: 1px solid #4b5563; border-radius: 6px; color: #fff; box-sizing: border-box; font-size: 15px; }
-        .flex-group { display: flex; gap: 12px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #94a3b8; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #fff; box-sizing: border-box; font-size: 14px; }
+        textarea { height: 120px; resize: none; font-family: inherit; }
+        .flex-group { display: flex; gap: 10px; }
         .flex-group > div { flex: 1; }
         
-        .switch-group { display: flex; align-items: center; justify-content: space-between; background: #2d2d34; padding: 12px; border-radius: 6px; margin-top: 5px; }
-        .switch-group input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
-        
-        .shootout-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: #121214; padding: 10px; border-radius: 6px; }
-        .shots { display: flex; gap: 6px; }
-        .shot-btn { width: 35px; height: 35px; border-radius: 6px; border: 1px solid #4b5563; background: #374151; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .shot-btn.success { background: var(--success); border-color: var(--success); }
-        .shot-btn.miss { background: #dc2626; border-color: #dc2626; }
+        .switch-group { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 10px; border-radius: 6px; margin-top: 5px; }
+        .switch-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
 
-        .update-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-color); padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.6); text-align: center; }
-        .btn-update { background: var(--success); color: white; border: none; width: 100%; max-width: 500px; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); text-transform: uppercase; }
+        .update-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); padding: 12px; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); text-align: center; }
+        .btn-update { background: var(--success); color: white; border: none; width: 100%; max-width: 400px; padding: 12px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <h2>Broadcast Suite Controller</h2>
+    <h2>Live Broadcast Controller</h2>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab(event, 'tab-score')">Score & Timer</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-logos')">Logos / Graphics</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-shootout')">Tiebreaker</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-logos')">Logos</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-lineup')">Player Lineup</button>
         <button class="tab-btn" onclick="openTab(event, 'tab-text')">Ticker & L3</button>
     </div>
 
     <div id="tab-score" class="tab-content active">
         <div class="switch-group">
             <label for="show_scoreboard" style="color:#fff; font-weight:bold;">Show Scoreboard Overlay</label>
-            <input type="checkbox" id="show_scoreboard" checked onchange="autoUpdate()">
+            <input type="checkbox" id="show_scoreboard" checked onchange="broadcastData()">
         </div>
         <br>
         <div class="flex-group">
             <div class="form-group">
                 <label>Team A Name</label>
-                <input type="text" id="team_a" value="TEAM A" oninput="autoUpdate()">
+                <input type="text" id="team_a" value="TEAM A" oninput="broadcastData()">
             </div>
-            <div class="form-group" style="max-width: 90px;">
+            <div class="form-group" style="max-width: 80px;">
                 <label>Score A</label>
-                <input type="number" id="score_a" value="0" oninput="autoUpdate()">
+                <input type="number" id="score_a" value="0" oninput="broadcastData()">
             </div>
         </div>
         <div class="flex-group">
             <div class="form-group">
                 <label>Team B Name</label>
-                <input type="text" id="team_b" value="TEAM B" oninput="autoUpdate()">
+                <input type="text" id="team_b" value="TEAM B" oninput="broadcastData()">
             </div>
-            <div class="form-group" style="max-width: 90px;">
+            <div class="form-group" style="max-width: 80px;">
                 <label>Score B</label>
-                <input type="number" id="score_b" value="0" oninput="autoUpdate()">
+                <input type="number" id="score_b" value="0" oninput="broadcastData()">
             </div>
         </div>
         <div class="flex-group">
             <div class="form-group">
                 <label>Match Time (MM:SS)</label>
-                <input type="text" id="match_time" value="00:00" oninput="autoUpdate()">
+                <input type="text" id="match_time" value="00:00" oninput="broadcastData()">
             </div>
             <div class="form-group">
                 <label>Period / Half</label>
-                <select id="period" onchange="autoUpdate()">
+                <select id="period" onchange="broadcastData()">
                     <option value="1st Half">1st Half</option>
                     <option value="2nd Half">2nd Half</option>
                     <option value="Extra Time">Extra Time</option>
@@ -87,93 +83,86 @@
             </div>
         </div>
         <div class="switch-group">
-            <label for="timer_run">Timer Run / Pause (Auto Count)</label>
-            <input type="checkbox" id="timer_run" onchange="toggleTimerState()">
+            <label for="timer_run">Timer Run / Pause</label>
+            <input type="checkbox" id="timer_run" onchange="toggleTimer()">
         </div>
     </div>
 
     <div id="tab-logos" class="tab-content">
         <div class="form-group">
-            <label>Logo 1 URL (Main/Channel Logo)</label>
-            <input type="text" id="logo1_url" placeholder="https://..." oninput="autoUpdate()">
+            <label>Logo 1 URL (Main Channel)</label>
+            <input type="text" id="logo1_url" placeholder="https://..." oninput="broadcastData()">
             <div class="switch-group">
                 <label for="logo1_on">Logo 1 On/Off</label>
-                <input type="checkbox" id="logo1_on" onchange="autoUpdate()">
+                <input type="checkbox" id="logo1_on" onchange="broadcastData()">
             </div>
         </div>
-        <hr style="border-color: #374151; margin: 20px 0;">
+        <hr style="border-color: #334155; margin: 15px 0;">
         <div class="form-group">
-            <label>Logo 2 URL (Sponsor/Extra Logo)</label>
-            <input type="text" id="logo2_url" placeholder="https://..." oninput="autoUpdate()">
+            <label>Logo 2 URL (Sponsor Logo)</label>
+            <input type="text" id="logo2_url" placeholder="https://..." oninput="broadcastData()">
             <div class="switch-group">
                 <label for="logo2_on">Logo 2 On/Off</label>
-                <input type="checkbox" id="logo2_on" onchange="autoUpdate()">
+                <input type="checkbox" id="logo2_on" onchange="broadcastData()">
             </div>
         </div>
     </div>
 
-    <div id="tab-shootout" class="tab-content">
-        <div class="switch-group" style="margin-bottom: 15px;">
-            <label for="shootout_on" style="color:#fff; font-weight:bold;">Show Shootout Panel</label>
-            <input type="checkbox" id="shootout_on" onchange="autoUpdate()">
+    <div id="tab-lineup" class="tab-content">
+        <div class="switch-group" style="margin-bottom: 12px;">
+            <label for="lineup_on" style="color:#fff; font-weight:bold;">Show Player Lineup Panel</label>
+            <input type="checkbox" id="lineup_on" onchange="broadcastData()">
         </div>
-        <div class="shootout-row">
-            <span id="label_team_a" style="font-weight:bold;">Team A</span>
-            <div class="shots">
-                <div class="shot-btn" id="ta_s1" onclick="toggleShot('ta_s1')">-</div>
-                <div class="shot-btn" id="ta_s2" onclick="toggleShot('ta_s2')">-</div>
-                <div class="shot-btn" id="ta_s3" onclick="toggleShot('ta_s3')">-</div>
-                <div class="shot-btn" id="ta_s4" onclick="toggleShot('ta_s4')">-</div>
-                <div class="shot-btn" id="ta_s5" onclick="toggleShot('ta_s5')">-</div>
-            </div>
+        <div class="form-group">
+            <label>Lineup Title (যেমন: আজকের একাদশ / Team Squad)</label>
+            <input type="text" id="lineup_title" value="Player Squad" oninput="broadcastData()">
         </div>
-        <div class="shootout-row">
-            <span id="label_team_b" style="font-weight:bold;">Team B</span>
-            <div class="shots">
-                <div class="shot-btn" id="tb_s1" onclick="toggleShot('tb_s1')">-</div>
-                <div class="shot-btn" id="tb_s2" onclick="toggleShot('tb_s2')">-</div>
-                <div class="shot-btn" id="tb_s3" onclick="toggleShot('tb_s3')">-</div>
-                <div class="shot-btn" id="tb_s4" onclick="toggleShot('tb_s4')">-</div>
-                <div class="shot-btn" id="tb_s5" onclick="toggleShot('tb_s5')">-</div>
-            </div>
+        <div class="form-group">
+            <label>Players List (প্রতি লাইনে ১টি করে নাম লিখুন)</label>
+            <textarea id="lineup_players" placeholder="1. Player One&#10;2. Player Two&#10;3. Player Three" oninput="broadcastData()"></textarea>
         </div>
     </div>
 
     <div id="tab-text" class="tab-content">
         <div class="form-group">
             <label>Scrolling Ticker Text</label>
-            <input type="text" id="ticker_text" placeholder="ব্রেকিং নিউজ এখানে লিখুন..." oninput="autoUpdate()">
+            <input type="text" id="ticker_text" placeholder="ব্রেকিং নিউজ এখানে লিখুন..." oninput="broadcastData()">
         </div>
         <div class="form-group">
             <label>Ticker Speed (Seconds)</label>
-            <input type="number" id="ticker_speed" value="10" oninput="autoUpdate()">
+            <input type="number" id="ticker_speed" value="15" oninput="broadcastData()">
         </div>
         <div class="switch-group">
             <label for="ticker_on">Ticker On/Off</label>
-            <input type="checkbox" id="ticker_on" onchange="autoUpdate()">
+            <input type="checkbox" id="ticker_on" onchange="broadcastData()">
         </div>
-        <hr style="border-color: #374151; margin: 20px 0;">
+        <hr style="border-color: #334155; margin: 15px 0;">
         <div class="form-group">
             <label>Lower Third Title</label>
-            <input type="text" id="lower_third_title" placeholder="যেমন: নাম" oninput="autoUpdate()">
+            <input type="text" id="lower_third_title" placeholder="নাম..." oninput="broadcastData()">
         </div>
         <div class="form-group">
             <label>Lower Third Subtitle</label>
-            <input type="text" id="lower_third_sub" placeholder="যেমন: পদবি" oninput="autoUpdate()">
+            <input type="text" id="lower_third_sub" placeholder="পদবি..." oninput="broadcastData()">
         </div>
         <div class="switch-group">
             <label for="lower_third_on">Lower Third On/Off</label>
-            <input type="checkbox" id="lower_third_on" onchange="autoUpdate()">
+            <input type="checkbox" id="lower_third_on" onchange="broadcastData()">
         </div>
     </div>
 
     <div class="update-bar">
-        <button class="btn-update" onclick="sendDataDirectly()">Force Sync Settings</button>
+        <button class="btn-update" onclick="forceSync()">Force Sync Broadcast</button>
     </div>
 
     <script>
-        // LocalStorage এ ডেটা অটো সেভ থাকবে, রিফ্রেশ করলে মুছবে না
-        const broadcastChannel = new BroadcastChannel('sports_overlay_channel');
+        const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const channel = supabase.channel('realtime_sports_relay');
+        channel.subscribe();
+
         let timerSec = 0;
         let timerInterval = null;
 
@@ -185,38 +174,6 @@
             for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
             document.getElementById(tabId).classList.add("active");
             evt.currentTarget.classList.add("active");
-            
-            if(tabId === 'tab-shootout'){
-                document.getElementById('label_team_a').innerText = document.getElementById('team_a').value || "Team A";
-                document.getElementById('label_team_b').innerText = document.getElementById('team_b').value || "Team B";
-            }
-        }
-
-        function toggleShot(id) {
-            const btn = document.getElementById(id);
-            if (btn.classList.contains('success')) {
-                btn.classList.remove('success'); btn.classList.add('miss'); btn.innerText = '✕';
-            } else if (btn.classList.contains('miss')) {
-                btn.classList.remove('miss'); btn.innerText = '-';
-            } else {
-                btn.classList.add('success'); btn.innerText = '✓';
-            }
-            autoUpdate();
-        }
-
-        function getShotState(id) {
-            const btn = document.getElementById(id);
-            if (btn.classList.contains('success')) return 'goal';
-            if (btn.classList.contains('miss')) return 'miss';
-            return 'none';
-        }
-
-        function setShotState(id, state) {
-            const btn = document.getElementById(id);
-            btn.classList.remove('success', 'miss');
-            if (state === 'goal') { btn.classList.add('success'); btn.innerText = '✓'; }
-            else if (state === 'miss') { btn.classList.add('miss'); btn.innerText = '✕'; }
-            else { btn.innerText = '-'; }
         }
 
         function packData() {
@@ -239,24 +196,31 @@
                 lower_third_title: document.getElementById('lower_third_title').value,
                 lower_third_sub: document.getElementById('lower_third_sub').value,
                 lower_third_on: document.getElementById('lower_third_on').checked,
-                shootout_on: document.getElementById('shootout_on').checked,
-                ta_s1: getShotState('ta_s1'), ta_s2: getShotState('ta_s2'), ta_s3: getShotState('ta_s3'), ta_s4: getShotState('ta_s4'), ta_s5: getShotState('ta_s5'),
-                tb_s1: getShotState('tb_s1'), tb_s2: getShotState('tb_s2'), tb_s3: getShotState('tb_s3'), tb_s4: getShotState('tb_s4'), tb_s5: getShotState('tb_s5'),
+                lineup_on: document.getElementById('lineup_on').checked,
+                lineup_title: document.getElementById('lineup_title').value,
+                lineup_players: document.getElementById('lineup_players').value
             };
         }
 
-        function autoUpdate() {
+        function broadcastData() {
             const data = packData();
-            localStorage.setItem('live_overlay_data', JSON.stringify(data));
-            broadcastChannel.postMessage(data);
+            // লোকাল মেমোরিতে রাখছি যাতে পেজ রিফ্রেশ করলেও প্যানেল ফাঁকা না হয়
+            localStorage.setItem('panel_cached_data', JSON.stringify(data));
+            
+            // সুপাবেস ব্রডকাস্ট চ্যানেলে ডেটা বাতাসে ভাসিয়ে দেওয়া হলো
+            channel.send({
+                type: 'broadcast',
+                event: 'update_overlay',
+                payload: data
+            });
         }
 
-        function sendDataDirectly() {
-            autoUpdate();
-            alert("Settings Synchronized Successfully!");
+        function forceSync() {
+            broadcastData();
+            alert("Broadcast Synchronized Successfully!");
         }
 
-        function toggleTimerState() {
+        function toggleTimer() {
             const isRunning = document.getElementById('timer_run').checked;
             if(isRunning) {
                 const parts = document.getElementById('match_time').value.split(':');
@@ -267,16 +231,16 @@
                     const m = Math.floor(timerSec / 60).toString().padStart(2, '0');
                     const s = (timerSec % 60).toString().padStart(2, '0');
                     document.getElementById('match_time').value = `${m}:${s}`;
-                    autoUpdate();
+                    broadcastData();
                 }, 1000);
             } else {
                 clearInterval(timerInterval);
             }
-            autoUpdate();
+            broadcastData();
         }
 
         window.onload = function() {
-            const saved = localStorage.getItem('live_overlay_data');
+            const saved = localStorage.getItem('panel_cached_data');
             if(saved) {
                 const data = JSON.parse(saved);
                 document.getElementById('logo1_url').value = data.logo1_url || '';
@@ -289,19 +253,18 @@
                 document.getElementById('score_b').value = data.score_b || 0;
                 document.getElementById('match_time').value = data.match_time || '00:00';
                 document.getElementById('period').value = data.period || '1st Half';
-                document.getElementById('timer_run').checked = data.timer_run || false;
+                document.getElementById('timer_run').checked = false; // নিরাপত্তার জন্য লোড টাইমে টাইমার পজ রাখছি
                 document.getElementById('show_scoreboard').checked = data.show_scoreboard !== false;
                 document.getElementById('ticker_text').value = data.ticker_text || '';
                 document.getElementById('ticker_on').checked = data.ticker_on || false;
-                document.getElementById('ticker_speed').value = data.ticker_speed || 10;
+                document.getElementById('ticker_speed').value = data.ticker_speed || 15;
                 document.getElementById('lower_third_title').value = data.lower_third_title || '';
                 document.getElementById('lower_third_sub').value = data.lower_third_sub || '';
                 document.getElementById('lower_third_on').checked = data.lower_third_on || false;
-                document.getElementById('shootout_on').checked = data.shootout_on || false;
-                
-                const shots = ['ta_s1','ta_s2','ta_s3','ta_s4','ta_s5','tb_s1','tb_s2','tb_s3','tb_s4','tb_s5'];
-                shots.forEach(s => setShotState(s, data[s]));
-                if(data.timer_run) toggleTimerState();
+                document.getElementById('lineup_on').checked = data.lineup_on || false;
+                document.getElementById('lineup_title').value = data.lineup_title || 'Player Squad';
+                document.getElementById('lineup_players').value = data.lineup_players || '';
+                broadcastData();
             }
         };
     </script>
