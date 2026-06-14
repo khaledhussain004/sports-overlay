@@ -126,7 +126,7 @@
             if(data) renderOverlay(data);
         }
 
-        // সুপাবেস রিয়েলটাইম লিসেনার (১ সেকেন্ড পর পর রিকোয়েস্ট না পাঠিয়ে ডাটা চেঞ্জ হলেই স্ক্রিন আপডেট হবে)
+        // সুপাবেস রিয়েলটাইম লিসেনার
         supabase
             .channel('schema-db-changes')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'overlays' }, payload => {

@@ -126,7 +126,7 @@
     <div id="tab-ticker" class="tab-content">
         <div class="form-group">
             <label>Scrolling Ticker Text</label>
-            <input type="text" id="ticker_text" placeholder="এখানে ব্রেকিং নিউজ লিখুন...">
+            <input type="text" id="ticker_text" placeholder="এখানে ব্রেकिंग নিউজ লিখুন...">
         </div>
         <div class="form-group">
             <label>Ticker Speed (Seconds)</label>
@@ -167,93 +167,4 @@
                     document.getElementById('team_a').value = data.team_a;
                     document.getElementById('score_a').value = data.score_a;
                     document.getElementById('team_b').value = data.team_b;
-                    document.getElementById('score_b').value = data.score_b;
-                    document.getElementById('match_time').value = data.match_time;
-                    document.getElementById('period').value = data.period;
-                    document.getElementById('timer_run').checked = data.timer_run;
-                    
-                    document.getElementById('logo1_url').value = data.logo1_url;
-                    document.getElementById('logo1_on').checked = data.logo1_on;
-                    document.getElementById('logo2_url').value = data.logo2_url;
-                    document.getElementById('logo2_on').checked = data.logo2_on;
-                    
-                    document.getElementById('lineup_on').checked = data.lineup_on;
-                    document.getElementById('lineup_title').value = data.lineup_title;
-                    document.getElementById('lineup_players').value = data.lineup_players || '';
-                    
-                    document.getElementById('ticker_text').value = data.ticker_text;
-                    document.getElementById('ticker_speed').value = data.ticker_speed;
-                    document.getElementById('ticker_on').checked = data.ticker_on;
-
-                    if (data.timer_run) {
-                        startTimerLoop();
-                    }
-                    document.getElementById('status').innerText = "✓ Cloud Database Connected!";
-                } else {
-                    document.getElementById('status').innerText = "Row ID 1 not found. Check Database.";
-                }
-            } catch (e) {
-                document.getElementById('status').innerText = "Connection failed!";
-            }
-        }
-
-        async function saveData() {
-            document.getElementById('status').innerText = "Saving Data Cloud...";
-            const payload = {
-                show_scoreboard: document.getElementById('show_scoreboard').checked,
-                team_a: document.getElementById('team_a').value,
-                score_a: document.getElementById('score_a').value,
-                team_b: document.getElementById('team_b').value,
-                score_b: document.getElementById('score_b').value,
-                match_time: document.getElementById('match_time').value,
-                period: document.getElementById('period').value,
-                timer_run: document.getElementById('timer_run').checked,
-                logo1_url: document.getElementById('logo1_url').value,
-                logo1_on: document.getElementById('logo1_on').checked,
-                logo2_url: document.getElementById('logo2_url').value,
-                logo2_on: document.getElementById('logo2_on').checked,
-                lineup_on: document.getElementById('lineup_on').checked,
-                lineup_title: document.getElementById('lineup_title').value,
-                lineup_players: document.getElementById('lineup_players').value,
-                ticker_text: document.getElementById('ticker_text').value,
-                ticker_speed: document.getElementById('ticker_speed').value,
-                ticker_on: document.getElementById('ticker_on').checked
-            };
-
-            const { error } = await supabase.from('overlays').update(payload).eq('id', 1);
-            if(!error) {
-                document.getElementById('status').innerText = "✓ Saved & Synced Successfully!";
-            } else {
-                document.getElementById('status').innerText = "Save error!";
-            }
-        }
-
-        function toggleTimer() {
-            if(document.getElementById('timer_run').checked) {
-                startTimerLoop();
-            } else {
-                clearInterval(timerInterval);
-            }
-            saveData();
-        }
-
-        function startTimerLoop() {
-            const timeParts = document.getElementById('match_time').value.split(':');
-            timerSec = (parseInt(timeParts[0]) || 0) * 60 + (parseInt(timeParts[1]) || 0);
-            clearInterval(timerInterval);
-            
-            timerInterval = setInterval(async () => {
-                timerSec++;
-                const min = Math.floor(timerSec / 60).toString().padStart(2, '0');
-                const sec = (timerSec % 60).toString().padStart(2, '0');
-                const timeString = `${min}:${sec}`;
-                document.getElementById('match_time').value = timeString;
-                
-                await supabase.from('overlays').update({ match_time: timeString }).eq('id', 1);
-            }, 1000);
-        }
-
-        window.addEventListener('DOMContentLoaded', loadCloudData);
-    </script>
-</body>
-</html>
+                    document
