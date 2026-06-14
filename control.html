@@ -3,55 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIVE BROADCAST SUITE CONTROLLER</title>
+    <title>BROADCAST CONTROLLER SUITE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0b1329; --panel: #1c2541; --accent: #3a86ff; --text: #f8fafc; --success: #38b000; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
-        h2 { text-align: center; color: #00b4d8; margin: 0 0 15px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
-        
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 90px; }
+        h2 { text-align: center; color: #00b4d8; margin: 0 0 15px 0; font-size: 18px; text-transform: uppercase; }
         .tabs { display: flex; gap: 4px; margin-bottom: 15px; background: #111a36; padding: 4px; border-radius: 8px; overflow-x: auto; }
-        .tab-btn { background: transparent; color: #a3b18a; border: none; padding: 12px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; flex: 1; text-align: center; white-space: nowrap; transition: 0.2s; }
+        .tab-btn { background: transparent; color: #a3b18a; border: none; padding: 12px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; text-align: center; white-space: nowrap; }
         .tab-btn.active { background: var(--accent); color: #fff; }
-        
-        .tab-content { display: none; background: var(--panel); padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-
+        .tab-content { display: none; background: var(--panel); padding: 15px; border-radius: 8px; }
         .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 6px; font-size: 13px; color: #94a3b8; font-weight: 500; }
-        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 12px; background: #0b1329; border: 1px solid #475569; border-radius: 6px; color: #fff; box-sizing: border-box; font-size: 14px; }
-        
+        label { display: block; margin-bottom: 6px; font-size: 13px; color: #94a3b8; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 12px; background: #0b1329; border: 1px solid #475569; border-radius: 6px; color: #fff; box-sizing: border-box; }
         .flex-group { display: flex; gap: 10px; }
         .flex-group > div { flex: 1; }
-        
-        .switch-group { display: flex; align-items: center; justify-content: space-between; background: #0b1329; padding: 12px; border-radius: 6px; margin-top: 5px; border: 1px solid #1e293b; }
-        .switch-group input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; }
-
-        .shootout-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: #0b1329; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; }
-        .shots { display: flex; gap: 6px; }
-        .shot-btn { width: 35px; height: 35px; border-radius: 6px; border: 1px solid #475569; background: #1c2541; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .shot-btn.success { background: var(--success); border-color: var(--success); }
-        .shot-btn.miss { background: #dc2626; border-color: #dc2626; }
-
-        .btn-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #0b1329; padding: 12px; box-sizing: border-box; border-top: 1px solid #1e293b; z-index: 999; }
-        .save-btn { width: 100%; background: var(--success); color: white; border: none; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .switch-group { display: flex; align-items: center; justify-content: space-between; background: #0b1329; padding: 12px; border-radius: 6px; border: 1px solid #1e293b; }
+        .btn-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #0b1329; padding: 12px; box-sizing: border-box; border-top: 1px solid #1e293b; }
+        .save-btn { width: 100%; background: var(--success); color: white; border: none; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
         .status-bar { text-align: center; font-size: 12px; color: #00b4d8; font-weight: bold; margin-top: 6px; }
     </style>
 </head>
 <body>
 
     <h2>Broadcast Controller Suite</h2>
-
     <div class="tabs">
-        <button type="button" class="tab-btn active" id="btn-score" onclick="switchTab('score')">Score & Time</button>
-        <button type="button" class="tab-btn" id="btn-logos" onclick="switchTab('logos')">Logos</button>
-        <button type="button" class="tab-btn" id="btn-shootout" onclick="switchTab('shootout')">Tiebreaker</button>
-        <button type="button" class="tab-btn" id="btn-squad" onclick="switchTab('squad')">Squad</button>
-        <button type="button" class="tab-btn" id="btn-ticker" onclick="switchTab('ticker')">Ticker & L3</button>
+        <button type="button" class="tab-btn active" onclick="switchTab('score')">Score & Time</button>
+        <button type="button" class="tab-btn" onclick="switchTab('squad')">Squad & Ticker</button>
     </div>
 
     <div id="tab-score" class="tab-content" style="display: block;">
         <div class="switch-group">
-            <label for="show_scoreboard" style="color:#fff; font-weight:bold; margin:0;">Show Scoreboard</label>
+            <label style="color:#fff; font-weight:bold; margin:0;">Show Scoreboard</label>
             <input type="checkbox" id="show_scoreboard" checked>
         </div>
         <br>
@@ -60,7 +43,7 @@
                 <label>Team A Name</label>
                 <input type="text" id="team_a" value="TEAM A">
             </div>
-            <div class="form-group" style="max-width: 90px;">
+            <div class="form-group" style="max-width: 80px;">
                 <label>Score A</label>
                 <input type="number" id="score_a" value="0">
             </div>
@@ -70,7 +53,7 @@
                 <label>Team B Name</label>
                 <input type="text" id="team_b" value="TEAM B">
             </div>
-            <div class="form-group" style="max-width: 90px;">
+            <div class="form-group" style="max-width: 80px;">
                 <label>Score B</label>
                 <input type="number" id="score_b" value="0">
             </div>
@@ -82,106 +65,29 @@
             </div>
             <div class="form-group">
                 <label>Period / Half</label>
-                <select id="period">
-                    <option value="1st Half">1st Half</option>
-                    <option value="2nd Half">2nd Half</option>
-                    <option value="Extra Time">Extra Time</option>
-                </select>
-            </div>
-        </div>
-        <div class="switch-group">
-            <label for="timer_run" style="margin:0;">Timer Run / Pause</label>
-            <input type="checkbox" id="timer_run" onchange="toggleTimer()">
-        </div>
-    </div>
-
-    <div id="tab-logos" class="tab-content">
-        <div class="form-group">
-            <label>Logo 1 URL</label>
-            <input type="text" id="logo1_url" placeholder="https://...">
-            <div class="switch-group">
-                <label for="logo1_on" style="margin:0;">Logo 1 On/Off</label>
-                <input type="checkbox" id="logo1_on">
-            </div>
-        </div>
-        <hr style="border: 0; border-top: 1px solid #475569; margin: 15px 0;">
-        <div class="form-group">
-            <label>Logo 2 URL</label>
-            <input type="text" id="logo2_url" placeholder="https://...">
-            <div class="switch-group">
-                <label for="logo2_on" style="margin:0;">Logo 2 On/Off</label>
-                <input type="checkbox" id="logo2_on">
-            </div>
-        </div>
-    </div>
-
-    <div id="tab-shootout" class="tab-content">
-        <div class="switch-group" style="margin-bottom: 15px;">
-            <label for="shootout_on" style="color:#fff; font-weight:bold; margin:0;">Show Shootout Panel</label>
-            <input type="checkbox" id="shootout_on">
-        </div>
-        <div class="shootout-row">
-            <span id="label_team_a" style="font-weight:bold; color: #e63946;">Team A</span>
-            <div class="shots">
-                <div class="shot-btn" id="ta_s1" onclick="toggleShot('ta_s1')">-</div>
-                <div class="shot-btn" id="ta_s2" onclick="toggleShot('ta_s2')">-</div>
-                <div class="shot-btn" id="ta_s3" onclick="toggleShot('ta_s3')">-</div>
-                <div class="shot-btn" id="ta_s4" onclick="toggleShot('ta_s4')">-</div>
-                <div class="shot-btn" id="ta_s5" onclick="toggleShot('ta_s5')">-</div>
-            </div>
-        </div>
-        <div class="shootout-row">
-            <span id="label_team_b" style="font-weight:bold; color: #00b4d8;">Team B</span>
-            <div class="shots">
-                <div class="shot-btn" id="tb_s1" onclick="toggleShot('tb_s1')">-</div>
-                <div class="shot-btn" id="tb_s2" onclick="toggleShot('tb_s2')">-</div>
-                <div class="shot-btn" id="tb_s3" onclick="toggleShot('tb_s3')">-</div>
-                <div class="shot-btn" id="tb_s4" onclick="toggleShot('tb_s4')">-</div>
-                <div class="shot-btn" id="tb_s5" onclick="toggleShot('tb_s5')">-</div>
+                <input type="text" id="period" value="1st Half">
             </div>
         </div>
     </div>
 
     <div id="tab-squad" class="tab-content">
-        <div class="switch-group" style="margin-bottom: 12px;">
-            <label for="lineup_on" style="color:#fff; font-weight:bold; margin:0;">Show Squad Panel</label>
+        <div class="switch-group">
+            <label style="color:#fff; font-weight:bold; margin:0;">Show Squad Panel</label>
             <input type="checkbox" id="lineup_on">
         </div>
+        <br>
         <div class="form-group">
-            <label>Lineup Title</label>
-            <input type="text" id="lineup_title" value="Player Squad">
+            <label>Players (1 per line)</label>
+            <textarea id="lineup_players" style="height:80px; color:white; background:#0b1329; width:100%;" placeholder="1. Player Name"></textarea>
         </div>
-        <div class="form-group">
-            <label>Players List (1 line per player)</label>
-            <textarea id="lineup_players" style="height:120px; font-family:inherit; color:white; background:#0b1329; width:100%; padding:10px; border-radius:6px; border:1px solid #475569;" placeholder="1. Player Name"></textarea>
-        </div>
-    </div>
-
-    <div id="tab-ticker" class="tab-content">
+        <hr style="border-color:#475569;">
         <div class="form-group">
             <label>Scrolling Ticker Text</label>
-            <input type="text" id="ticker_text" placeholder="এখানে ব্রেকিং নিউজ লিখুন...">
-        </div>
-        <div class="form-group">
-            <label>Ticker Speed (Seconds)</label>
-            <input type="number" id="ticker_speed" value="15">
+            <input type="text" id="ticker_text">
         </div>
         <div class="switch-group">
-            <label for="ticker_on" style="margin:0;">Ticker On/Off</label>
+            <label style="margin:0;">Ticker On/Off</label>
             <input type="checkbox" id="ticker_on">
-        </div>
-        <hr style="border: 0; border-top: 1px solid #475569; margin: 15px 0;">
-        <div class="form-group">
-            <label>Lower Third Title</label>
-            <input type="text" id="lower_third_title" placeholder="যেমন: ধারাভাষ্যকার">
-        </div>
-        <div class="form-group">
-            <label>Lower Third Subtitle</label>
-            <input type="text" id="lower_third_sub" placeholder="যেমন: খালেদ হোসাইন">
-        </div>
-        <div class="switch-group">
-            <label for="lower_third_on" style="margin:0;">Lower Third On/Off</label>
-            <input type="checkbox" id="lower_third_on">
         </div>
     </div>
 
@@ -194,145 +100,67 @@
         const SUPABASE_URL = "https://exnedokvmwxhqcjsyvcq.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        let timerSec = 0;
-        let timerInterval = null;
 
-        function switchTab(tabName) {
+        function switchTab(tab) {
             document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
+            document.getElementById("tab-" + tab).style.display = "block";
             document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-            
-            document.getElementById("tab-" + tabName).style.display = "block";
-            document.getElementById("btn-" + tabName).classList.add("active");
-
-            if(tabName === 'shootout'){
-                document.getElementById('label_team_a').innerText = document.getElementById('team_a').value || "Team A";
-                document.getElementById('label_team_b').innerText = document.getElementById('team_b').value || "Team B";
-            }
+            event.currentTarget.classList.add("active");
         }
 
-        function toggleShot(id) {
-            const btn = document.getElementById(id);
-            if (btn.classList.contains('success')) {
-                btn.classList.remove('success'); btn.classList.add('miss'); btn.innerText = '✕';
-            } else if (btn.classList.contains('miss')) {
-                btn.classList.remove('miss'); btn.innerText = '-';
-            } else {
-                btn.classList.add('success'); btn.innerText = '✓';
-            }
-        }
-
-        function getShotState(id) {
-            const btn = document.getElementById(id);
-            if (btn.classList.contains('success')) return 'goal';
-            if (btn.classList.contains('miss')) return 'miss';
-            return 'none';
-        }
-
-        function setShotState(id, state) {
-            const btn = document.getElementById(id);
-            btn.classList.remove('success', 'miss');
-            if (state === 'goal') { btn.classList.add('success'); btn.innerText = '✓'; }
-            else if (state === 'miss') { btn.classList.add('miss'); btn.innerText = '✕'; }
-            else { btn.innerText = '-'; }
-        }
-
-        async function loadCloudData() {
+        async function loadData() {
             try {
                 const { data, error } = await supabase.from('overlays').select('*').eq('id', 1).single();
                 if (data) {
-                    document.getElementById('show_scoreboard').checked = data.show_scoreboard;
-                    document.getElementById('team_a').value = data.team_a;
-                    document.getElementById('score_a').value = data.score_a;
-                    document.getElementById('team_b').value = data.team_b;
-                    document.getElementById('score_b').value = data.score_b;
-                    document.getElementById('match_time').value = data.match_time;
-                    document.getElementById('period').value = data.period;
-                    document.getElementById('timer_run').checked = data.timer_run;
-                    
-                    document.getElementById('logo1_url').value = data.logo1_url;
-                    document.getElementById('logo1_on').checked = data.logo1_on;
-                    document.getElementById('logo2_url').value = data.logo2_url;
-                    document.getElementById('logo2_on').checked = data.logo2_on;
-                    
-                    document.getElementById('lineup_on').checked = data.lineup_on || false;
-                    document.getElementById('lineup_title').value = data.lineup_title || 'Player Squad';
+                    document.getElementById('show_scoreboard').checked = data.show_scoreboard ?? true;
+                    document.getElementById('team_a').value = data.team_a || 'TEAM A';
+                    document.getElementById('score_a').value = data.score_a ?? 0;
+                    document.getElementById('team_b').value = data.team_b || 'TEAM B';
+                    document.getElementById('score_b').value = data.score_b ?? 0;
+                    document.getElementById('match_time').value = data.match_time || '00:00';
+                    document.getElementById('period').value = data.period || '1st Half';
+                    document.getElementById('lineup_on').checked = data.lineup_on ?? false;
                     document.getElementById('lineup_players').value = data.lineup_players || '';
-                    
-                    document.getElementById('ticker_text').value = data.ticker_text;
-                    document.getElementById('ticker_speed').value = data.ticker_speed;
-                    document.getElementById('ticker_on').checked = data.ticker_on;
-
-                    document.getElementById('lower_third_title').value = data.lower_third_title || '';
-                    document.getElementById('lower_third_sub').value = data.lower_third_sub || '';
-                    document.getElementById('lower_third_on').checked = data.lower_third_on || false;
-
-                    document.getElementById('shootout_on').checked = data.ticker_speed === '99' ? true : false; // Use dummy mappings if needed, or text fields
-
-                    // Load custom values from text fields for tiebreaker safely
-                    setShotState('ta_s1', data.logo1_url === 'goal' ? 'goal' : 'none'); 
-
-                    if (data.timer_run) { startTimerLoop(); }
-                    document.getElementById('status').innerText = "✓ Cloud Database Connected!";
+                    document.getElementById('ticker_text').value = data.ticker_text || '';
+                    document.getElementById('ticker_on').checked = data.ticker_on ?? false;
+                    document.getElementById('status').innerText = "✓ Connected to Cloud!";
+                    document.getElementById('status').style.color = "#38b000";
+                } else {
+                    document.getElementById('status').innerText = "No Row Found. Creating Data...";
+                    await supabase.from('overlays').insert([{id: 1, team_a: 'TEAM A', team_b: 'TEAM B', score_a: 0, score_b: 0}]);
+                    loadData();
                 }
-            } catch (e) { document.getElementById('status').innerText = "Connection failed!"; }
+            } catch (e) { 
+                document.getElementById('status').innerText = "Error syncing with cloud."; 
+            }
         }
 
         async function saveData() {
-            document.getElementById('status').innerText = "Saving to Cloud...";
+            document.getElementById('status').innerText = "Saving data...";
+            document.getElementById('status').style.color = "#3a86ff";
             const payload = {
                 show_scoreboard: document.getElementById('show_scoreboard').checked,
                 team_a: document.getElementById('team_a').value,
-                score_a: document.getElementById('score_a').value,
+                score_a: document.getElementById('score_a').value.toString(),
                 team_b: document.getElementById('team_b').value,
-                score_b: document.getElementById('score_b').value,
+                score_b: document.getElementById('score_b').value.toString(),
                 match_time: document.getElementById('match_time').value,
                 period: document.getElementById('period').value,
-                timer_run: document.getElementById('timer_run').checked,
-                logo1_url: document.getElementById('logo1_url').value,
-                logo1_on: document.getElementById('logo1_on').checked,
-                logo2_url: document.getElementById('logo2_url').value,
-                logo2_on: document.getElementById('logo2_on').checked,
                 lineup_on: document.getElementById('lineup_on').checked,
-                lineup_title: document.getElementById('lineup_title').value,
                 lineup_players: document.getElementById('lineup_players').value,
                 ticker_text: document.getElementById('ticker_text').value,
-                ticker_speed: document.getElementById('ticker_speed').value,
-                ticker_on: document.getElementById('ticker_on').checked,
-                lower_third_title: document.getElementById('lower_third_title').value,
-                lower_third_sub: document.getElementById('lower_third_sub').value,
-                lower_third_on: document.getElementById('lower_third_on').checked,
-                // Custom text storage for shootout safely in existing text slots
-                lineup_title: document.getElementById('lineup_title').value + "||" + (document.getElementById('shootout_on').checked ? 'on':'off') + "|" + getShotState('ta_s1') + "|" + getShotState('ta_s2') + "|" + getShotState('ta_s3') + "|" + getShotState('ta_s4') + "|" + getShotState('ta_s5') + "|" + getShotState('tb_s1') + "|" + getShotState('tb_s2') + "|" + getShotState('tb_s3') + "|" + getShotState('tb_s4') + "|" + getShotState('tb_s5')
+                ticker_on: document.getElementById('ticker_on').checked
             };
-
             const { error } = await supabase.from('overlays').update(payload).eq('id', 1);
-            if(!error) { document.getElementById('status').innerText = "✓ Saved & Synced Successfully!"; }
-            else { document.getElementById('status').innerText = "Save error!"; }
+            if(!error) {
+                document.getElementById('status').innerText = "✓ Updated Successfully!";
+                document.getElementById('status').style.color = "#38b000";
+            } else {
+                document.getElementById('status').innerText = "Save Failed! Check cloud connectivity.";
+                document.getElementById('status').style.color = "#ff3333";
+            }
         }
-
-        function toggleTimer() {
-            if(document.getElementById('timer_run').checked) { startTimerLoop(); } 
-            else { clearInterval(timerInterval); }
-            saveData();
-        }
-
-        function startTimerLoop() {
-            const timeParts = document.getElementById('match_time').value.split(':');
-            timerSec = (parseInt(timeParts[0]) || 0) * 60 + (parseInt(timeParts[1]) || 0);
-            clearInterval(timerInterval);
-            
-            timerInterval = setInterval(async () => {
-                timerSec++;
-                const min = Math.floor(timerSec / 60).toString().padStart(2, '0');
-                const sec = (timerSec % 60).toString().padStart(2, '0');
-                const timeString = `${min}:${sec}`;
-                document.getElementById('match_time').value = timeString;
-                await supabase.from('overlays').update({ match_time: timeString }).eq('id', 1);
-            }, 1000);
-        }
-
-        window.addEventListener('DOMContentLoaded', loadCloudData);
+        window.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
 </html>
