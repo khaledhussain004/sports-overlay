@@ -36,10 +36,10 @@
     <h2>Live Broadcast Controller</h2>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'tab-score')">Score & Timer</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-logos')">Logos</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-lineup')">Player Lineup</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-text')">Ticker & L3</button>
+        <button class="tab-btn active" id="btn-tab-score" onclick="openTab('tab-score', 'btn-tab-score')">Score & Timer</button>
+        <button class="tab-btn" id="btn-tab-logos" onclick="openTab('tab-logos', 'btn-tab-logos')">Logos</button>
+        <button class="tab-btn" id="btn-tab-lineup" onclick="openTab('tab-lineup', 'btn-tab-lineup')">Player Lineup</button>
+        <button class="tab-btn" id="btn-tab-text" onclick="openTab('tab-text', 'btn-tab-text')">Ticker & L3</button>
     </div>
 
     <div id="tab-score" class="tab-content active">
@@ -114,12 +114,12 @@
             <input type="checkbox" id="lineup_on" onchange="broadcastData()">
         </div>
         <div class="form-group">
-            <label>Lineup Title (যেমন: আজকের একাদশ / Team Squad)</label>
+            <label>Lineup Title (যেমন: আজকের একাদশ)</label>
             <input type="text" id="lineup_title" value="Player Squad" oninput="broadcastData()">
         </div>
         <div class="form-group">
             <label>Players List (প্রতি লাইনে ১টি করে নাম লিখুন)</label>
-            <textarea id="lineup_players" placeholder="1. Player One&#10;2. Player Two&#10;3. Player Three" oninput="broadcastData()"></textarea>
+            <textarea id="lineup_players" placeholder="1. Player One&#10;2. Player Two" oninput="broadcastData()"></textarea>
         </div>
     </div>
 
@@ -160,20 +160,24 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bmVkb2t2bXd4aHFjanN5dmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NTM2MzgsImV4cCI6MjA5NjIyOTYzOH0.D_-5dDNX58O-MnIWnAa1o0X_l84O4rxfh6GzyKzJWPA";
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const channel = supabase.channel('realtime_sports_relay');
+        const channel = supabase.channel('realtime_sports_relay', { config: { broadcast: { ack: true } } });
         channel.subscribe();
 
         let timerSec = 0;
         let timerInterval = null;
 
-        function openTab(evt, tabId) {
-            let i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) tabcontent[i].classList.remove("active");
-            tablinks = document.getElementsByClassName("tab-btn");
-            for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
+        // বাটনগুলো যাতে পারফেক্টলি ক্লিক হলে ওপেন হয়, সেই ফিক্সড ফাংশন
+        function openTab(tabId, btnId) {
+            const contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].classList.remove("active");
+            }
+            const buttons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+            }
             document.getElementById(tabId).classList.add("active");
-            evt.currentTarget.classList.add("active");
+            document.getElementById(btnId).classList.add("active");
         }
 
         function packData() {
@@ -204,20 +208,19 @@
 
         function broadcastData() {
             const data = packData();
-            // লোকাল মেমোরিতে রাখছি যাতে পেজ রিফ্রেশ করলেও প্যানেল ফাঁকা না হয়
-            localStorage.setItem('panel_cached_data', JSON.stringify(data));
-            
-            // সুপাবেস ব্রডকাস্ট চ্যানেলে ডেটা বাতাসে ভাসিয়ে দেওয়া হলো
+            // রিয়েল-টাইম ব্রডকাস্ট পাঠাচ্ছি
             channel.send({
                 type: 'broadcast',
                 event: 'update_overlay',
                 payload: data
             });
+            // লোকাল স্টোরেজ ও ক্লাউড সিঙ্ক ব্যাকআপ রাখছি যাতে রিফ্রেশে ডেটা না যায়
+            localStorage.setItem('panel_cached_data', JSON.stringify(data));
         }
 
         function forceSync() {
             broadcastData();
-            alert("Broadcast Synchronized Successfully!");
+            alert("Broadcast Status Force Synchronized!");
         }
 
         function toggleTimer() {
@@ -239,6 +242,7 @@
             broadcastData();
         }
 
+        // পেজ রিফ্রেশ দিলেও যাতে আগের ডাটা ব্যাক আসে তার গ্লোবাল ফিক্স
         window.onload = function() {
             const saved = localStorage.getItem('panel_cached_data');
             if(saved) {
@@ -253,7 +257,7 @@
                 document.getElementById('score_b').value = data.score_b || 0;
                 document.getElementById('match_time').value = data.match_time || '00:00';
                 document.getElementById('period').value = data.period || '1st Half';
-                document.getElementById('timer_run').checked = false; // নিরাপত্তার জন্য লোড টাইমে টাইমার পজ রাখছি
+                document.getElementById('timer_run').checked = data.timer_run || false;
                 document.getElementById('show_scoreboard').checked = data.show_scoreboard !== false;
                 document.getElementById('ticker_text').value = data.ticker_text || '';
                 document.getElementById('ticker_on').checked = data.ticker_on || false;
@@ -264,7 +268,13 @@
                 document.getElementById('lineup_on').checked = data.lineup_on || false;
                 document.getElementById('lineup_title').value = data.lineup_title || 'Player Squad';
                 document.getElementById('lineup_players').value = data.lineup_players || '';
-                broadcastData();
+                
+                // যদি আগে টাইমার রানিং থাকে, রিস্টার্ট করা
+                if(data.timer_run) {
+                    toggleTimer();
+                } else {
+                    broadcastData();
+                }
             }
         };
     </script>

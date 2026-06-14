@@ -90,7 +90,7 @@
         function updateUI(data) {
             if(!data) return;
             
-            // ১. স্কোরবোর্ড
+            // স্কোরবোর্ড অন-অফ ও নাম আপডেট
             document.getElementById('scoreboard').style.visibility = data.show_scoreboard ? 'visible' : 'hidden';
             document.getElementById('view_team_a').innerText = data.team_a || 'TEAM A';
             document.getElementById('view_score_a').innerText = data.score_a || '0';
@@ -99,7 +99,7 @@
             document.getElementById('view_time').innerText = data.match_time || '00:00';
             document.getElementById('view_period').innerText = data.period || '1st Half';
 
-            // ২. ডাবল লোগো কন্ট্রোল
+            // লোগো হ্যান্ডেলিং
             if(data.logo1_on && data.logo1_url) {
                 document.getElementById('logo1_img').src = data.logo1_url;
                 document.getElementById('logo1_box').style.display = 'flex';
@@ -110,7 +110,7 @@
                 document.getElementById('logo2_box').style.display = 'flex';
             } else { document.getElementById('logo2_box').style.display = 'none'; }
 
-            // ৩. নিউজ টিকার
+            // নিউজ টিকার
             const ticker = document.getElementById('ticker');
             if(data.ticker_on && data.ticker_text) {
                 document.getElementById('view_ticker_text').innerText = data.ticker_text;
@@ -118,7 +118,7 @@
                 ticker.style.visibility = 'visible';
             } else { ticker.style.visibility = 'hidden'; }
 
-            // ৪. লোয়ার থার্ড
+            // লোয়ার থার্ড
             const l3 = document.getElementById('lower_third');
             if(data.lower_third_on && data.lower_third_title) {
                 document.getElementById('view_l3_title').innerText = data.lower_third_title;
@@ -126,12 +126,12 @@
                 l3.style.visibility = 'visible';
             } else { l3.style.visibility = 'hidden'; }
 
-            // ৫. প্লেয়ার লাইনআপ লিস্ট রেন্ডার
+            // প্লেয়ার লিস্ট প্যানেল
             const lineupPanel = document.getElementById('lineup_screen');
             if(data.lineup_on) {
                 document.getElementById('view_lineup_title').innerText = data.lineup_title || 'PLAYER SQUAD';
                 const listContainer = document.getElementById('players_list_container');
-                listContainer.innerHTML = ''; // পুরোনো নাম ক্লিয়ার
+                listContainer.innerHTML = '';
                 
                 if(data.lineup_players) {
                     const lines = data.lineup_players.split('\n');
@@ -150,7 +150,6 @@
             }
         }
 
-        // সুপাবেস গ্লোবাল রিয়েল-টাইম চ্যানেল লিসেনার (যা প্রিজম অ্যাপের উইন্ডোতেও কাজ করে)
         const channel = supabase.channel('realtime_sports_relay');
         channel.on('broadcast', { event: 'update_overlay' }, (payload) => {
             updateUI(payload.payload);
